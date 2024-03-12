@@ -1,106 +1,55 @@
 using Newtonsoft.Json.Serialization;
-using CanFlyPipeline.JwtAuthentication;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using System.Text;
-
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//variable for jwtOptions
-var jwtOptions = builder.Configuration
-    .GetSection("JwtOptions")
-    .Get<JwtOptions>();
-
-//add services to container
-builder.Services.AddSingleton(jwtOptions);
+// Add services to container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+});
 
-// Configuring the Authentication Service
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opts =>
-    {
-        //convert the string signing key to byte array
-        byte[] signingKeyBytes = Encoding.UTF8
-            .GetBytes(jwtOptions.SigningKey);
-
-        opts.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOptions.Issuer,
-            ValidAudience = jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes)
-        };
-    });
-
-// Configuring the Authorization Service
-builder.Services.AddAuthorization();
-
-//JSON Serializer
+// JSON Serializer
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
-options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore).AddNewtonsoftJson
-(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+});
+
+// Application Insights Telemetry
 builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
-// add Authentication Middleware
-app.UseAuthentication();
-// add Authorization Middleware
-app.UseAuthorization();
-
-// routes and public routes can make anonymous requests
-app.MapGet("/", () => "Hello World!");
-app.MapGet("/public", () => "Public Hello World!")
-    .AllowAnonymous();
-
-// routes for private require authorized request
-app.MapGet("/private", () => "Private Hello World!")
-    .RequireAuthorization();
-
-// handles the request token endpoint
-app.MapPost("/tokens/connect", (HttpContext ctx, JwtOptions jwtOptions)
-    => CanFlyPipeline.JwtAuthentication.Endpoints.TokenEndpoint.Connect(ctx, jwtOptions));
-
-//read the jwt token from header
-app.MapGet("/jwt-token/headers", (HttpContext ctx) =>
-{
-    if (ctx.Request.Headers.TryGetValue("Authorization", out var headerAuth))
-    {
-        var jwtToken = headerAuth.First().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
-        return Task.FromResult(TypedResults.Ok(new { token = jwtToken }));
-    }
-    return Task.FromResult(TypedResults.NotFound(new { message = "jwt not found" }));
-});
-
-//read the jwt token from authentication context
-app.MapGet("/jwt-token/context", async (HttpContext ctx) =>
-{
-    var token = await ctx.GetTokenAsync("access_token");
-
-    return TypedResults.Ok(new { token = token });
-});
-
-// Configuring the Authorization Service
-builder.Services.AddAuthorization();
-
-//Enable CORS
+// Enable CORS
 app.UseCors(c => c.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
 
-app.UseAuthorization();
+app.UseRouting();
+
+// Routes and public routes can make anonymous requests
+app.MapGet("/", () => "Hello World!");
+app.MapGet("/public", () => "Public Hello World!").AllowAnonymous();
+
+// Routes for private require authorized request
+app.MapGet("/private", () => "Private Hello World!").RequireAuthorization();
 
 app.MapControllers();
 

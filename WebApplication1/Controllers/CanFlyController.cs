@@ -88,7 +88,33 @@ namespace CanFlyPipeline.Controllers
 
         {
 
-            string query = "INSERT INTO logEntry (date, aircraftType, engineType, registration, pilotInCommand, studentOrCoPilot, activityExercises, singleEngineDayDualTime, singleEngineDayPICTime, singleEngineNightDualTime, singleEngineNightPICTime, multiEngineDayDualTime, multiEngineDayPICTime, multiEngineDaySICTime, multiEngineNightDualTime, multiEngineNightPICTime, multiEngineNightSICTime, instrumentIMC, instrumentHood, instrumentFTD, instrumentApproachesCount, crossCountryDayDualTime, crossCountryDayPICTime, crossCountryNightDualTime, crossCountryNightPICTime, routeFrom, routeVia, routeTo, dualInstructionGivenNotes, floatTimeNotes, VFRSimulatorNotes, CAF, takeOffs, landings, circuits, omitFromReports,untetheredBalloon, altitudeBalloon, outsideCanada, instrumentGroundOptional, launchLocationGlider, distanceGlider, launchTypeGlider) Values(@Date, @AircraftType, @engineType, @Registration, @PilotInCommand, @StudentOrCoPilot, @ActivityExercises, @SingleEngineDayDualTime, @SingleEngineDayPICTime, @SingleEngineNightDualTime, @SingleEngineNightPICTime, @MultiEngineDayDualTime, @MultiEngineDayPICTime, @MultiEngineDaySICTime, @MultiEngineNightDualTime, @MultiEngineNightPICTime, @MultiEngineNightSICTime, @InstrumentIMC, @InstrumentHood, @InstrumentFTD, @InstrumentApproachesCount, @CrossCountryDayDualTime, @CrossCountryDayPICTime, @CrossCountryNightDualTime, @CrossCountryNightPICTime, @RouteFrom, @RouteVia, @RouteTo, @DualInstructionGivenNotes, @FloatTimeNotes, @VFRSimulatorNotes, @CAF, @takeOffs, @landings, @circuits, @omitFromReports, @untetheredBalloon, @altitudeBalloon, @outsideCanada, @instrumentGroundOptional, @launchLocationGlider, @distanceGlider, @launchTypeGlider)";
+            string query = @"INSERT INTO logEntry (
+                date, registration, pilotInCommand, studentOrCoPilot, activityExercises, 
+                singleEngineDayDualTime, singleEngineDayPICTime, singleEngineNightDualTime, singleEngineNightPICTime, 
+                multiEngineDayDualTime, multiEngineDayPICTime, multiEngineDaySICTime, multiEngineNightDualTime, multiEngineNightPICTime, multiEngineNightSICTime, 
+                instrumentIMC, instrumentHood, instrumentFTD, instrumentApproachesCount, 
+                crossCountryDayDualTime, crossCountryDayPICTime, crossCountryNightDualTime, crossCountryNightPICTime, 
+                routeFrom, routeVia, routeTo, 
+                dualInstructionGivenNotes, floatTimeNotes, VFRSimulatorNotes, 
+                planeTypeID, pilotID, CAF, 
+                takeOffs, landings, circuits, omitFromReports, 
+                untetheredBalloon, altitudeBalloon, outsideCanada, instrumentGroundOptional, 
+                launchLocationGlider, distanceGlider, launchTypeGlider, 
+                aircraftCategory, aircraftTypeID) 
+            VALUES (
+                @Date, @Registration, @PilotInCommand, @StudentOrCoPilot, @ActivityExercises, 
+                @SingleEngineDayDualTime, @SingleEngineDayPICTime, @SingleEngineNightDualTime, @SingleEngineNightPICTime, 
+                @MultiEngineDayDualTime, @MultiEngineDayPICTime, @MultiEngineDaySICTime, @MultiEngineNightDualTime, @MultiEngineNightPICTime, @MultiEngineNightSICTime, 
+                @InstrumentIMC, @InstrumentHood, @InstrumentFTD, @InstrumentApproachesCount, 
+                @CrossCountryDayDualTime, @CrossCountryDayPICTime, @CrossCountryNightDualTime, @CrossCountryNightPICTime, 
+                @RouteFrom, @RouteVia, @RouteTo, 
+                @DualInstructionGivenNotes, @FloatTimeNotes, @VFRSimulatorNotes, 
+                @PlaneTypeID, @PilotID, @CAF, 
+                @TakeOffs, @Landings, @Circuits, @OmitFromReports, 
+                @UntetheredBalloon, @AltitudeBalloon, @OutsideCanada, @InstrumentGroundOptional, 
+                @LaunchLocationGlider, @DistanceGlider, @LaunchTypeGlider, 
+                @AircraftCategory, @AircraftTypeID)";
+
 
             DataTable table = new DataTable();
 
@@ -105,54 +131,52 @@ namespace CanFlyPipeline.Controllers
                 using (SqlCommand myCommand = new SqlCommand(query, myCon))
 
                 {
+                    myCommand.Parameters.AddWithValue("@date", logentrymodel.date).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@registration", logentrymodel.registration).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@pilotInCommand", logentrymodel.pilotInCommand).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@studentOrCoPilot", logentrymodel.studentOrCoPilot).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@activityExercises", logentrymodel.activityExercises).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@singleEngineDayDualTime", logentrymodel.singleEngineDayDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@singleEngineDayPICTime", logentrymodel.singleEngineDayPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@singleEngineNightDualTime", logentrymodel.singleEngineNightDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@singleEngineNightPICTime", logentrymodel.singleEngineNightPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineDayDualTime", logentrymodel.multiEngineDayDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineDayPICTime", logentrymodel.multiEngineDayPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineDaySICTime", logentrymodel.multiEngineDaySICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineNightDualTime", logentrymodel.multiEngineNightDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineNightPICTime", logentrymodel.multiEngineNightPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@multiEngineNightSICTime", logentrymodel.multiEngineNightSICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@instrumentIMC", logentrymodel.instrumentIMC).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@instrumentHood", logentrymodel.instrumentHood).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@instrumentFTD", logentrymodel.instrumentFTD).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@instrumentApproachesCount", logentrymodel.instrumentApproachesCount).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@crossCountryDayDualTime", logentrymodel.crossCountryDayDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@crossCountryDayPICTime", logentrymodel.crossCountryDayPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@crossCountryNightDualTime", logentrymodel.crossCountryNightDualTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@crossCountryNightPICTime", logentrymodel.crossCountryNightPICTime).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@routeFrom", logentrymodel.routeFrom).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@routeVia", logentrymodel.routeVia).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@routeTo", logentrymodel.routeTo).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@dualInstructionGivenNotes", logentrymodel.dualInstructionGivenNotes).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@floatTimeNotes", logentrymodel.floatTimeNotes).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@VFRSimulatorNotes", logentrymodel.VFRSimulatorNotes).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@CAF", logentrymodel.CAF).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@takeOffs", logentrymodel.takeOffs).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@landings", logentrymodel.landings).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@circuits", logentrymodel.circuits).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@omitFromReports", logentrymodel.omitFromReports).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@untetheredBalloon", logentrymodel.untetheredBalloon).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@altitudeBalloon", logentrymodel.altitudeBalloon).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@outsideCanada", logentrymodel.outsideCanada).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@instrumentGroundOptional", logentrymodel.instrumentGroundOptional).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@launchLocationGlider", logentrymodel.launchLocationGlider).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@distanceGlider", logentrymodel.distanceGlider).Value ??= DBNull.Value;
+                    myCommand.Parameters.AddWithValue("@launchTypeGlider", logentrymodel.launchTypeGlider).Value ??= DBNull.Value;
                     
-                    myCommand.Parameters.AddWithValue("@date", logentrymodel.date ).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@aircraftType", logentrymodel.aircraftType).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@engineType", logentrymodel.engineType).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@registration", logentrymodel.registration).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@pilotInCommand", logentrymodel.pilotInCommand).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@studentOrCoPilot", logentrymodel.studentOrCoPilot).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@activityExercises", logentrymodel.activityExercises).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@singleEngineDayDualTime", logentrymodel.singleEngineDayDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@singleEngineDayPICTime", logentrymodel.singleEngineDayPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@singleEngineNightDualTime", logentrymodel.singleEngineNightDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@singleEngineNightPICTime", logentrymodel.singleEngineNightPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineDayDualTime", logentrymodel.multiEngineDayDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineDayPICTime", logentrymodel.multiEngineDayPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineDaySICTime", logentrymodel.multiEngineDaySICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightDualTime", logentrymodel.multiEngineNightDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightPICTime", logentrymodel.multiEngineNightPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightSICTime", logentrymodel.multiEngineNightSICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@instrumentIMC", logentrymodel.instrumentIMC).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@instrumentHood", logentrymodel.instrumentHood).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@instrumentFTD", logentrymodel.instrumentFTD).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@instrumentApproachesCount", logentrymodel.instrumentApproachesCount).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@crossCountryDayDualTime", logentrymodel.crossCountryDayDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@crossCountryDayPICTime", logentrymodel.crossCountryDayPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@crossCountryNightDualTime", logentrymodel.crossCountryNightDualTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@crossCountryNightPICTime", logentrymodel.crossCountryNightPICTime).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@routeFrom", logentrymodel.routeFrom).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@routeVia", logentrymodel.routeVia).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@routeTo", logentrymodel.routeTo).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@dualInstructionGivenNotes", logentrymodel.dualInstructionGivenNotes).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@floatTimeNotes", logentrymodel.floatTimeNotes).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@VFRSimulatorNotes", logentrymodel.VFRSimulatorNotes).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@CAF", logentrymodel.CAF).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@takeOffs", logentrymodel.takeOffs).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@landings", logentrymodel.landings).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@circuits", logentrymodel.circuits).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@omitFromReports", logentrymodel.omitFromReports).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@untetheredBalloon", logentrymodel.untetheredBalloon).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@altitudeBalloon", logentrymodel.altitudeBalloon).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@outsideCanada", logentrymodel.outsideCanada).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@instrumentGroundOptional", logentrymodel.instrumentGroundOptional).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@launchLocationGlider", logentrymodel.launchLocationGlider).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@distanceGlider", logentrymodel.distanceGlider).Value ??= DBNull.Value; ;
-                    myCommand.Parameters.AddWithValue("@launchTypeGlider", logentrymodel.launchTypeGlider).Value ??= DBNull.Value; ;
- 
 
 
-                     myReader = myCommand.ExecuteReader();
+
+                    myReader = myCommand.ExecuteReader();
 
                     table.Load(myReader);
 
