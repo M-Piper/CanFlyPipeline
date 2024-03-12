@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34009.444
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CanFlyPipeline", "WebApplication1\CanFlyPipeline.csproj", "{F9CE1AC5-C75D-476C-BB46-CA993E4CA105}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F9CE1AC5-C75D-476C-BB46-CA993E4CA105}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9CE1AC5-C75D-476C-BB46-CA993E4CA105}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9CE1AC5-C75D-476C-BB46-CA993E4CA105}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9CE1AC5-C75D-476C-BB46-CA993E4CA105}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {56E363E1-1A30-4F0D-8887-39E74D2A898A}
+	EndGlobalSection
+EndGlobal
