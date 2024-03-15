@@ -172,8 +172,7 @@ namespace CanFlyPipeline.Controllers
                     myCommand.Parameters.AddWithValue("@launchLocationGlider", logentrymodel.launchLocationGlider).Value ??= DBNull.Value;
                     myCommand.Parameters.AddWithValue("@distanceGlider", logentrymodel.distanceGlider).Value ??= DBNull.Value;
                     myCommand.Parameters.AddWithValue("@launchTypeGlider", logentrymodel.launchTypeGlider).Value ??= DBNull.Value;
-                    
-
+                    myCommand.Parameters.AddWithValue("@aircraftTypeID", logentrymodel.aircraftTypeID).Value = 149;
 
 
                     myReader = myCommand.ExecuteReader();
@@ -201,13 +200,16 @@ namespace CanFlyPipeline.Controllers
         public JsonResult GetTotalHours()
         {
             string query = @"
-        SELECT 
-            SUM(singleEngineDayDualTime + 
-                singleEngineDayPICTime + 
-                singleEngineNightDualTime +
-                singleEngineNightPICTime)
-                as TotalHours
-        FROM logEntry";
+            SELECT 
+                ROUND(
+                SUM(
+                    COALESCE(singleEngineDayDualTime, 0) + 
+                    COALESCE(singleEngineDayPICTime, 0) + 
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0)
+                ),
+                2) as TotalHours
+            FROM logEntry;";
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
@@ -232,7 +234,7 @@ namespace CanFlyPipeline.Controllers
         [Microsoft.AspNetCore.Mvc.Route("GetName")]
         public JsonResult GetName()
         {
-            string query = @"SELECT TOP 1 firstName + ' ' + lastName AS FullName FROM pilot;";
+            string query = @"SELECT firstName + ' ' + lastName AS FullName FROM pilot WHERE pilotID = 2;";
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
