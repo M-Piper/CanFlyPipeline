@@ -95,12 +95,11 @@ namespace CanFlyPipeline.Controllers
                 instrumentIMC, instrumentHood, instrumentFTD, instrumentApproachesCount, 
                 crossCountryDayDualTime, crossCountryDayPICTime, crossCountryNightDualTime, crossCountryNightPICTime, 
                 routeFrom, routeVia, routeTo, 
-                dualInstructionGivenNotes, floatTimeNotes, VFRSimulatorNotes, 
-                planeTypeID, pilotID, CAF, 
+                dualInstructionGivenNotes, floatTimeNotes, VFRSimulatorNotes, CAF, 
                 takeOffs, landings, circuits, omitFromReports, 
                 untetheredBalloon, altitudeBalloon, outsideCanada, instrumentGroundOptional, 
                 launchLocationGlider, distanceGlider, launchTypeGlider, 
-                aircraftCategory, aircraftTypeID) 
+                aircraftCategory, aircraftTypeID, pilotID) 
             VALUES (
                 @Date, @Registration, @PilotInCommand, @StudentOrCoPilot, @ActivityExercises, 
                 @SingleEngineDayDualTime, @SingleEngineDayPICTime, @SingleEngineNightDualTime, @SingleEngineNightPICTime, 
@@ -109,11 +108,11 @@ namespace CanFlyPipeline.Controllers
                 @CrossCountryDayDualTime, @CrossCountryDayPICTime, @CrossCountryNightDualTime, @CrossCountryNightPICTime, 
                 @RouteFrom, @RouteVia, @RouteTo, 
                 @DualInstructionGivenNotes, @FloatTimeNotes, @VFRSimulatorNotes, 
-                @PlaneTypeID, @PilotID, @CAF, 
+                @CAF, 
                 @TakeOffs, @Landings, @Circuits, @OmitFromReports, 
                 @UntetheredBalloon, @AltitudeBalloon, @OutsideCanada, @InstrumentGroundOptional, 
                 @LaunchLocationGlider, @DistanceGlider, @LaunchTypeGlider, 
-                @AircraftCategory, @AircraftTypeID)";
+                @AircraftCategory, @AircraftTypeID, 2)";
 
 
             DataTable table = new DataTable();
@@ -173,6 +172,7 @@ namespace CanFlyPipeline.Controllers
                     myCommand.Parameters.AddWithValue("@distanceGlider", logentrymodel.distanceGlider).Value ??= DBNull.Value;
                     myCommand.Parameters.AddWithValue("@launchTypeGlider", logentrymodel.launchTypeGlider).Value ??= DBNull.Value;
                     myCommand.Parameters.AddWithValue("@aircraftTypeID", logentrymodel.aircraftTypeID).Value = 149;
+                    myCommand.Parameters.AddWithValue("@aircraftCategory", logentrymodel.aircraftCategory).Value ??= DBNull.Value;
 
 
                     myReader = myCommand.ExecuteReader();
@@ -184,14 +184,99 @@ namespace CanFlyPipeline.Controllers
                     myCon.Close();
 
                 }
+            }
+            return new JsonResult("Added Successfully");
+        }
 
+
+        //GET RATINGS THAT ARE IN PROGRESS FOR DEMO PILOT (PILOTID = 2)
+        [HttpGet]
+        [Microsoft.AspNetCore.Mvc.Route("GetInProgressRatings")]
+        public JsonResult GetInProgressRatings(int pilotId)
+        {
+            string query = @"
+            SELECT r.longName, r.shortName
+            FROM rating AS ra 
+            JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
+            WHERE ra.pilotID = @PilotId AND ra.isWorkingTowards>0;";
+
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
+
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                {
+                    myCommand.Parameters.AddWithValue("@PilotId", pilotId);
+                    myCon.Open();
+                    using (SqlDataReader myReader = myCommand.ExecuteReader())
+                    {
+                        table.Load(myReader);
+                        myReader.Close();
+                        myCon.Close();
+                    }
+                }
             }
 
+            var ratings = new List<object>();
+            foreach (DataRow row in table.Rows)
+            {
+                ratings.Add(new
+                {
+                    LongName = row["longName"],
+                    ShortName = row["shortName"]
+                });
+            }
 
-
-            return new JsonResult("Added Successfully");
-
+            return new JsonResult(ratings);
         }
+
+
+
+
+        //RETRIEVE COMPLETED RATINGS FOR DEMO PILOT (PILOTID = 2)
+        [HttpGet]
+        [Microsoft.AspNetCore.Mvc.Route("GetCompletedRatings")]
+        public JsonResult GetCompletedRatings(int pilotId)
+        {
+            string query = @"
+            SELECT r.longName, r.shortName, ra.dateAwarded 
+            FROM rating AS ra 
+            JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
+            WHERE ra.pilotID = @PilotId AND ra.isWorkingTowards IS NULL;";
+
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
+
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                {
+                    myCommand.Parameters.AddWithValue("@PilotId", pilotId);
+                    myCon.Open();
+                    using (SqlDataReader myReader = myCommand.ExecuteReader())
+                    {
+                        table.Load(myReader);
+                        myReader.Close();
+                        myCon.Close();
+                    }
+                }
+            }
+
+            var ratings = new List<object>();
+            foreach (DataRow row in table.Rows)
+            {
+                ratings.Add(new
+                {
+                    LongName = row["longName"],
+                    ShortName = row["shortName"],
+                    DateAwarded = row["dateAwarded"]
+                });
+            }
+
+            return new JsonResult(ratings);
+        }
+
 
 
         //RETRIEVING TOTAL SUM OF SINGLE ENGINE HOURS FOR LANDING PAGE
