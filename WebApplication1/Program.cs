@@ -29,6 +29,15 @@ builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
+//added for swagger in production as well as development
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+});
+
+app.UseRouting();
+
 // Enable CORS
 app.UseCors(c => c.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
@@ -42,14 +51,16 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseRouting();
+//app.UseRouting();
 
 // Routes and public routes can make anonymous requests
-app.MapGet("/", () => "Hello World!");
-app.MapGet("/public", () => "Public Hello World!").AllowAnonymous();
+//app.MapGet("/", () => "Hello World!");
+//app.MapGet("/public", () => "Public Hello World!").AllowAnonymous();
 
 // Routes for private require authorized request
-app.MapGet("/private", () => "Private Hello World!").RequireAuthorization();
+//app.MapGet("/private", () => "Private Hello World!").RequireAuthorization();
+
+app.UseAuthorization();
 
 app.MapControllers();
 
