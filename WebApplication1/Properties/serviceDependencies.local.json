@@ -14,6 +14,10 @@
       "type": "mssql.azure",
       "connectionId": "ConnectionStrings:CanFlyDBConn",
       "dynamicId": null
+    },
+    "identityapp1": {
+      "connectionInfo": "App registration: CanFly, Tenant: LAC (LAC479.onmicrosoft.com - Microsoft Entra ID)",
+      "type": "identityapp.default"
     }
   }
 }
