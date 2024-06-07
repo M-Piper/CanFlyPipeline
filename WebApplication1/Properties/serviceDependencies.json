@@ -7,16 +7,16 @@
     "secrets1": {
       "type": "secrets"
     },
-    "mssql1": {
-      "type": "mssql",
-      "connectionId": "ConnectionStrings:CanFlyDBConn",
-      "dynamicId": null
-    },
     "identityapp1": {
       "type": "identityapp"
     },
     "apis1": {
       "type": "apis"
+    },
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:CanFlyDBConn",
+      "dynamicId": null
     }
   }
 }
