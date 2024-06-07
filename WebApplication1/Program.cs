@@ -63,14 +63,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-//app.UseRouting();
+app.UseRouting();
 
 // Routes and public routes can make anonymous requests
-//app.MapGet("/", () => "Hello World!");
-//app.MapGet("/public", () => "Public Hello World!").AllowAnonymous();
+app.MapGet("/", () => "This is text from program.cs where you have app.MapGet");
+app.MapGet("/public", () => "This is text from program.cs to demo public access using app.MapGet").AllowAnonymous();
 
 // Routes for private require authorized request
-//app.MapGet("/private", () => "Private Hello World!").RequireAuthorization();
+app.MapGet("/private", () => "Private Hello World!").RequireAuthorization();
 
 app.UseAuthorization();
 
