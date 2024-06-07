@@ -26,13 +26,13 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{ github.workspace }}/myapp
+        run: dotnet publish -c Release -o ${{ github.workspace }}/CanFlyPipeline
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: .net-app
-          path: ${{ github.workspace }}/myapp
+          path: ${{ github.workspace }}/CanFlyPipeline
 
   deploy:
     runs-on: windows-latest
@@ -62,4 +62,4 @@ jobs:
         with:
           app-name: 'canfly-backend'
           slot-name: 'Production'
-          package: ${{ github.workspace }}/myapp
+          package: ${{ github.workspace }}/CanFlyPipeline
