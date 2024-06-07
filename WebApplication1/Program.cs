@@ -40,7 +40,12 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    // Specify the base URL of your API in Production
+    var swaggerJsonEndpoint = app.Environment.IsDevelopment()
+        ? "/swagger/v1/swagger.json"
+        : "https://canfly-backend.azurewebsites.net/swagger/v1/swagger.json";
+
+    c.SwaggerEndpoint(swaggerJsonEndpoint, "My API V1");
 });
 
 app.UseRouting();
