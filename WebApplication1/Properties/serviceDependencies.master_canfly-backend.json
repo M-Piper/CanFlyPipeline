@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/canfly-backend/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsCanFlyDBConn_D777D27471",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/canfly-server/databases/CanFlyDB",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:CanFlyDBConn",
+      "dynamicId": null
+    }
+  }
+}
