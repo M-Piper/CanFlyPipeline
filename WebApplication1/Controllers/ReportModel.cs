@@ -4,7 +4,7 @@ namespace WebApplication1.Controllers
 {
     public class ReportModel
     {
-        public int pilotID { get; set; }
+        public string? displayName { get; set; }
         public string? ratingName { get; set; }
         public DateTime? ratingDate { get; set; }
         public string? medicalName { get; set; }
