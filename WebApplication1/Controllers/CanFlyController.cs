@@ -30,7 +30,338 @@ namespace CanFlyPipeline.Controllers
         public JsonResult GetPilotreport()
 
         {
-            string query = "--DROP PRIOR INSTANCE OF TEMPTABLE\r\nDROP TABLE #TempReport;\r\n\r\n--CREATE TEMPORARY TABLE\r\nCREATE TABLE #TempReport (\r\n    pilotID INT,\r\n    ratingName VARCHAR(255),\r\n    ratingStatus VARCHAR(50),\r\n    ratingDate DATE,\r\n    medicalName VARCHAR(255),\r\n    medicalDate DATE,\r\n    totalTime DECIMAL(10, 2),\r\n    totalPIC DECIMAL(10, 2),\r\n    totalDual DECIMAL(10, 2),\r\n    timeOnType DECIMAL(10, 2),\r\n    typeName VARCHAR(255),\r\n    totalNight DECIMAL(10, 2),\r\n    nightNoInstrument DECIMAL(10, 2),\r\n    totalInstrument DECIMAL(10, 2),\r\n    totalCrossCountry DECIMAL(10, 2),\r\n    totalLast30Days DECIMAL(10, 2),\r\n    totalLast90Days DECIMAL(10, 2),\r\n    totalLast6Months DECIMAL(10, 2),\r\n    totalLast12Months DECIMAL(10, 2),\r\n    totalLast24Months DECIMAL(10, 2),\r\n    totalLast60Months DECIMAL(10, 2),\r\n    approachesLast6Months DECIMAL(10, 2),\r\n    daysSincePIC DECIMAL(10, 2),\r\n    daysSinceIPC DECIMAL(10, 2),\r\n    daysSinceCurrencyUpgrade DECIMAL(10, 2)\r\n);\r\n\r\n-- IN-PROGRESS RATINGS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, ratingName, ratingStatus)\r\nSELECT \r\n    p.pilotID,\r\n    rt.longName AS ratingName,\r\n    'InProgress' AS ratingStatus\r\nFROM pilot p\r\nLEFT JOIN rating r \r\n    ON p.pilotID = r.pilotID \r\nLEFT JOIN ratingType rt\r\n    ON r.ratingTypeID = rt.ratingTypeID\r\nWHERE p.pilotID = 2 \r\nAND r.isWorkingTowards IS NOT NULL \r\nAND r.dateAwarded IS NULL;\r\n\r\n-- COMPLETED RATINGS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, ratingName, ratingStatus, ratingDate)\r\nSELECT \r\n    p.pilotID,\r\n    rt.longName AS ratingName, \r\n    'Completed' AS ratingStatus, \r\n    r.dateAwarded AS ratingDate \r\nFROM pilot p \r\nLEFT JOIN rating r ON p.pilotID = r.pilotID \r\nLEFT JOIN ratingType rt ON r.ratingTypeID = rt.ratingTypeID\r\nWHERE p.pilotID = 2 \r\nAND r.isWorkingTowards IS NULL \r\nAND r.dateAwarded IS NOT NULL;\r\n\r\n-- MEDICAL FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, medicalName, medicalDate)\r\nSELECT \r\n    m.pilotID,\r\n    mt.letterOrCertificate AS medicalName, \r\n    m.expiry AS medicalDate \r\nFROM medical m \r\nLEFT JOIN medicalType mt ON mt.medicalTypeID = m.medicalTypeID\r\nWHERE m.pilotID = 2;\r\n\r\n-- TOTAL TIME FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalTime) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalTime\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- PILOT IN COMMAND HOURS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalPIC) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0)) AS totalPIC\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- DUAL HOURS TOTAL FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalDual) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalDual\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- TOTAL TIME ON TYPE FOR PILOT 2 FOR CESSNA 172 (aircraftTypeID = 149)\r\nINSERT INTO #TempReport (pilotID, timeOnType, typeName) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS timeOnType, \r\n    'Cessna 172' AS typeName\r\nFROM logEntry\r\nWHERE pilotID = 2 AND aircraftTypeID = 149\r\nGROUP BY pilotID;\r\n\r\n-- TOTAL NIGHT HOURS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalNight)\r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0)) AS totalNight\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- TOTAL NIGHT HOURS WITHOUT COUNTING INSTRUMENT HOURS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, nightNoInstrument)\r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0)) AS nightNoInstrument\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- TOTAL INSTRUMENT HOURS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalInstrument)\r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalInstrument\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n-- TOTAL CROSS COUNTRY HOURS FOR PILOT 2\r\nINSERT INTO #TempReport (pilotID, totalCrossCountry)\r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(crossCountryDayDualTime, 0) +\r\n        COALESCE(crossCountryDayPICTime, 0) +\r\n        COALESCE(crossCountryNightDualTime, 0) +\r\n        COALESCE(crossCountryNightPICTime, 0)) AS totalCrossCountry\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nGROUP BY pilotID;\r\n\r\n\r\n--TOTAL FOR LAST 30 DAYS\r\nINSERT INTO #TempReport (pilotID, totalLast30Days) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast30Days\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(DAY, -30, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n\r\n--TOTAL LAST 90 DAYS\r\nINSERT INTO #TempReport (pilotID, totalLast90Days) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast90Days\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(DAY, -90, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n\r\n--TOTAL LAST 6 MONTHS\r\nINSERT INTO #TempReport (pilotID, totalLast6Months) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast6Months\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(MONTH, -6, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n--TOTAL LAST 12 MONTHS\r\nINSERT INTO #TempReport (pilotID, totalLast12Months) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast12Months\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(MONTH, -12, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n\r\n--TOTAL LAST 24 MONTHS\r\nINSERT INTO #TempReport (pilotID, totalLast24Months) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast24Months\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(MONTH, -24, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n--TOTAL LAST 6 MONTHS\r\nINSERT INTO #TempReport (pilotID, totalLast60Months) \r\nSELECT \r\n    pilotID,\r\n    SUM(COALESCE(singleEngineDayDualTime, 0) +\r\n        COALESCE(singleEngineDayPICTime, 0) +\r\n        COALESCE(singleEngineNightDualTime, 0) +\r\n        COALESCE(singleEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineDayDualTime, 0) +\r\n        COALESCE(multiEngineDayPICTime, 0) +\r\n        COALESCE(multiEngineDaySICTime, 0) +\r\n        COALESCE(multiEngineNightDualTime, 0) +\r\n        COALESCE(multiEngineNightPICTime, 0) +\r\n        COALESCE(multiEngineNightSICTime, 0) +\r\n        COALESCE(instrumentActualTime, 0) +\r\n        COALESCE(instrumentHoodTime, 0)) AS totalLast60Months\r\nFROM logEntry\r\nWHERE pilotID = 2\r\nAND date >= DATEADD(MONTH, -60, GETDATE())\r\nGROUP BY pilotID;\r\n\r\n--DAYS SINCE PILOT IN COMMAND\r\n\r\n--DAYS SINCE IPC\r\n\r\n--DAYS SINCE CURRENCY UPGRADE\r\n\r\n-- Select from the temporary table\r\nSELECT * FROM #TempReport;\r\n";
+        string query = @"
+            --DROP PRIOR INSTANCE OF TEMPTABLE
+                IF OBJECT_ID('tempdb..#TempReport') IS NOT NULL
+                   BEGIN
+                   DROP TABLE #TempReport;
+                END
+
+
+            --CREATE TEMPORARY TABLE
+            CREATE TABLE #TempReport (
+                pilotID INT,
+                ratingName VARCHAR(255),
+                ratingStatus VARCHAR(50),
+                ratingDate DATE,
+                medicalName VARCHAR(255),
+                medicalDate DATE,
+                totalTime DECIMAL(10, 2),
+                totalPIC DECIMAL(10, 2),
+                totalDual DECIMAL(10, 2),
+                timeOnType DECIMAL(10, 2),
+                typeName VARCHAR(255),
+                totalNight DECIMAL(10, 2),
+                nightNoInstrument DECIMAL(10, 2),
+                totalInstrument DECIMAL(10, 2),
+                totalCrossCountry DECIMAL(10, 2),
+                totalLast30Days DECIMAL(10, 2),
+                totalLast90Days DECIMAL(10, 2),
+                totalLast6Months DECIMAL(10, 2),
+                totalLast12Months DECIMAL(10, 2),
+                totalLast24Months DECIMAL(10, 2),
+                totalLast60Months DECIMAL(10, 2),
+                approachesLast6Months DECIMAL(10, 2),
+                daysSincePIC DECIMAL(10, 2),
+                daysSinceIPC DECIMAL(10, 2),
+                daysSinceCurrencyUpgrade DECIMAL(10, 2)
+            );
+
+            -- IN-PROGRESS RATINGS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, ratingName, ratingStatus)
+            SELECT 
+                p.pilotID,
+                rt.longName AS ratingName,
+                'InProgress' AS ratingStatus
+            FROM pilot p
+            LEFT JOIN rating r 
+                ON p.pilotID = r.pilotID 
+            LEFT JOIN ratingType rt
+                ON r.ratingTypeID = rt.ratingTypeID
+            WHERE p.pilotID = 2 
+            AND r.isWorkingTowards IS NOT NULL 
+            AND r.dateAwarded IS NULL;
+
+            -- COMPLETED RATINGS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, ratingName, ratingStatus, ratingDate)
+            SELECT 
+                p.pilotID,
+                rt.longName AS ratingName, 
+                'Completed' AS ratingStatus, 
+                r.dateAwarded AS ratingDate 
+            FROM pilot p 
+            LEFT JOIN rating r ON p.pilotID = r.pilotID 
+            LEFT JOIN ratingType rt ON r.ratingTypeID = rt.ratingTypeID
+            WHERE p.pilotID = 2 
+            AND r.isWorkingTowards IS NULL 
+            AND r.dateAwarded IS NOT NULL;
+
+            -- MEDICAL FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, medicalName, medicalDate)
+            SELECT 
+                m.pilotID,
+                mt.letterOrCertificate AS medicalName, 
+                m.expiry AS medicalDate 
+            FROM medical m 
+            LEFT JOIN medicalType mt ON mt.medicalTypeID = m.medicalTypeID
+            WHERE m.pilotID = 2;
+
+            -- TOTAL TIME FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalTime) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalTime
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- PILOT IN COMMAND HOURS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalPIC) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0)) AS totalPIC
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- DUAL HOURS TOTAL FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalDual) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalDual
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- TOTAL TIME ON TYPE FOR PILOT 2 FOR CESSNA 172 (aircraftTypeID = 149)
+            INSERT INTO #TempReport (pilotID, timeOnType, typeName) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS timeOnType, 
+                'Cessna 172' AS typeName
+            FROM logEntry
+            WHERE pilotID = 2 AND aircraftTypeID = 149
+            GROUP BY pilotID;
+
+            -- TOTAL NIGHT HOURS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalNight)
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0)) AS totalNight
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- TOTAL NIGHT HOURS WITHOUT COUNTING INSTRUMENT HOURS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, nightNoInstrument)
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0)) AS nightNoInstrument
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- TOTAL INSTRUMENT HOURS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalInstrument)
+            SELECT 
+                pilotID,
+                SUM(COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalInstrument
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+            -- TOTAL CROSS COUNTRY HOURS FOR PILOT 2
+            INSERT INTO #TempReport (pilotID, totalCrossCountry)
+            SELECT 
+                pilotID,
+                SUM(COALESCE(crossCountryDayDualTime, 0) +
+                    COALESCE(crossCountryDayPICTime, 0) +
+                    COALESCE(crossCountryNightDualTime, 0) +
+                    COALESCE(crossCountryNightPICTime, 0)) AS totalCrossCountry
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
+
+
+            --TOTAL FOR LAST 30 DAYS
+            INSERT INTO #TempReport (pilotID, totalLast30Days) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast30Days
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(DAY, -30, GETDATE())
+            GROUP BY pilotID;
+
+
+            --TOTAL LAST 90 DAYS
+            INSERT INTO #TempReport (pilotID, totalLast90Days) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast90Days
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(DAY, -90, GETDATE())
+            GROUP BY pilotID;
+
+
+            --TOTAL LAST 6 MONTHS
+            INSERT INTO #TempReport (pilotID, totalLast6Months) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast6Months
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(MONTH, -6, GETDATE())
+            GROUP BY pilotID;
+
+            --TOTAL LAST 12 MONTHS
+            INSERT INTO #TempReport (pilotID, totalLast12Months) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast12Months
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(MONTH, -12, GETDATE())
+            GROUP BY pilotID;
+
+
+            --TOTAL LAST 24 MONTHS
+            INSERT INTO #TempReport (pilotID, totalLast24Months) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast24Months
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(MONTH, -24, GETDATE())
+            GROUP BY pilotID;
+
+            --TOTAL LAST 6 MONTHS
+            INSERT INTO #TempReport (pilotID, totalLast60Months) 
+            SELECT 
+                pilotID,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalLast60Months
+            FROM logEntry
+            WHERE pilotID = 2
+            AND date >= DATEADD(MONTH, -60, GETDATE())
+            GROUP BY pilotID;
+
+            --DAYS SINCE PILOT IN COMMAND
+
+            --DAYS SINCE IPC
+
+            --DAYS SINCE CURRENCY UPGRADE
+
+            -- Select from the temporary table
+            SELECT * FROM #TempReport;"
+
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
             SqlDataReader myReader;
@@ -49,6 +380,7 @@ namespace CanFlyPipeline.Controllers
             }
             return new JsonResult(table);
         }
+
 
 
 
