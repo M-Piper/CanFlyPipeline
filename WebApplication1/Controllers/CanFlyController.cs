@@ -30,7 +30,7 @@ namespace CanFlyPipeline.Controllers
         public JsonResult GetPilotreport()
 
         {
-        string query = @"
+            string query = @"
             --DROP PRIOR INSTANCE OF TEMPTABLE
                 IF OBJECT_ID('tempdb..#TempReport') IS NOT NULL
                    BEGIN
@@ -360,7 +360,7 @@ namespace CanFlyPipeline.Controllers
             --DAYS SINCE CURRENCY UPGRADE
 
             -- Select from the temporary table
-            SELECT * FROM #TempReport;"
+            SELECT * FROM #TempReport;";
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
