@@ -18,9 +18,9 @@
         public float? multiEngineNightDualTime { get; set; }
         public float? multiEngineNightPICTime { get; set; }
         public float? multiEngineNightSICTime { get; set; }
-        public float? instrumentIMC { get; set; }
-        public float? instrumentHood { get; set; }
-        public float? instrumentFTD { get; set; }
+        public float? instrumentActualTime { get; set; }
+        public float? instrumentHoodTime { get; set; }
+        public float? instrumentSimulatorDualTime { get; set; }
         public int? instrumentApproachesCount { get; set; }
         public float? crossCountryDayDualTime { get; set; }
         public float? crossCountryDayPICTime { get; set; }
@@ -29,9 +29,9 @@
         public string? routeFrom { get; set; }
         public string? routeVia { get; set; }
         public string? routeTo { get; set; }
-        public string? dualInstructionGivenNotes { get; set; }
-        public string? floatTimeNotes { get; set; }
-        public string? VFRSimulatorNotes { get; set; }
+        public string? dualInstructionGivenTime { get; set; }
+        public string? floatTime { get; set; }
+        public string? VFRSimulatorDualTime { get; set; }
         public int? planeTypeID { get; set; }
         public int? pilotID { get; set; }
         public bool? CAF { get; set; }
@@ -48,5 +48,6 @@
         public string? launchTypeGlider { get; set; }
         public string? aircraftCategory { get; set; }
         public int? aircraftTypeID { get; set; }
+
     }
 }
