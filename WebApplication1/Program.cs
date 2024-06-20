@@ -18,6 +18,8 @@ builder.Services.AddAuthorization();
 
 // Add services to container
 builder.Services.AddControllers();
+
+// Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -34,6 +36,18 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 // Application Insights Telemetry
 builder.Services.AddApplicationInsightsTelemetry();
 
+
+// Configure CORS to allow requests from your frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost4200",
+        builder => builder
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
+// Build the application
 var app = builder.Build();
 
 //added for swagger in production as well as development

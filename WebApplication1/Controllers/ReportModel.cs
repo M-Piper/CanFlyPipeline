@@ -17,6 +17,9 @@ namespace WebApplication1.Controllers
         public float? totalNight { get; set; }
         public float? nightNoInstrument { get; set; }
         public float? totalCrossCountry { get; set; }
+        public float? totalSim { get; set; }
+        public float? totalInstrumentSim { get; set; }
+        public float? totalVFRSim { get; set; }
         public float? totalLast30Days { get; set; }
         public float? totalLast90Days { get; set; }
         public float? totalLast6Months { get; set; }

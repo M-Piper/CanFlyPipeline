@@ -26,6 +26,7 @@
         public float? crossCountryDayPICTime { get; set; }
         public float? crossCountryNightDualTime { get; set; }
         public float? crossCountryNightPICTime { get; set; }
+        public float? crossCountryDistance { get; set; }
         public string? routeFrom { get; set; }
         public string? routeVia { get; set; }
         public string? routeTo { get; set; }
@@ -42,7 +43,6 @@
         public int? untetheredBalloon { get; set; }
         public int? altitudeBalloon { get; set; }
         public bool? outsideCanada { get; set; }
-        public int? instrumentGroundOptional { get; set; }
         public string? launchLocationGlider { get; set; }
         public int? distanceGlider { get; set; }
         public string? launchTypeGlider { get; set; }
