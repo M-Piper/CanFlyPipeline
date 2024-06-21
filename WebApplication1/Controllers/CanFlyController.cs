@@ -648,7 +648,7 @@ namespace CanFlyPipeline.Controllers
                 @SingleEngineDayDualTime, @SingleEngineDayPICTime, @SingleEngineNightDualTime, @SingleEngineNightPICTime, 
                 @MultiEngineDayDualTime, @MultiEngineDayPICTime, @MultiEngineDaySICTime, @MultiEngineNightDualTime, @MultiEngineNightPICTime, @MultiEngineNightSICTime, 
                 @InstrumentActualTime, @InstrumentHoodTime, @InstrumentSimulatorDualTime, @InstrumentApproachesCount, 
-                @CrossCountryDayDualTime, @CrossCountryDayPICTime, @CrossCountryNightDualTime, @CrossCountryNightPICTime, @crossCountryDistance, 
+                @CrossCountryDayDualTime, @CrossCountryDayPICTime, @CrossCountryNightDualTime, @CrossCountryNightPICTime, @CrossCountryDistance, 
                 @RouteFrom, @RouteVia, @RouteTo, 
                 @DualInstructionGivenTime, @FloatTime, @VFRSimulatorDualTime, 
                 @CAF, 
