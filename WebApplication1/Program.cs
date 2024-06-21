@@ -37,7 +37,7 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 builder.Services.AddApplicationInsightsTelemetry();
 
 
-// Configure CORS to allow requests from your frontend
+/*// Configure CORS to allow requests from your frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost4200",
@@ -45,7 +45,7 @@ builder.Services.AddCors(options =>
             .WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
             .AllowAnyMethod());
-});
+});*/
 
 // Build the application
 var app = builder.Build();
