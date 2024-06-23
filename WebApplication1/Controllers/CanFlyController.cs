@@ -636,7 +636,7 @@ namespace CanFlyPipeline.Controllers
                 singleEngineDayDualTime, singleEngineDayPICTime, singleEngineNightDualTime, singleEngineNightPICTime, 
                 multiEngineDayDualTime, multiEngineDayPICTime, multiEngineDaySICTime, multiEngineNightDualTime, multiEngineNightPICTime, multiEngineNightSICTime, 
                 instrumentActualTime, instrumentHoodTime, instrumentSimulatorDualTime, instrumentApproachesCount, 
-                crossCountryDayDualTime, crossCountryDayPICTime, crossCountryNightDualTime, crossCountryNightPICTime, crossCountryDistance
+                crossCountryDayDualTime, crossCountryDayPICTime, crossCountryNightDualTime, crossCountryNightPICTime, crossCountryDistance,
                 routeFrom, routeVia, routeTo, 
                 dualInstructionGivenTime, floatTime, VFRSimulatorDualTime, CAF, 
                 takeOffs, landings, circuits, omitFromReports, 
