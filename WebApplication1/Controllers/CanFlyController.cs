@@ -563,6 +563,32 @@ namespace CanFlyPipeline.Controllers
 
 
 
+        //RETRIEVING DATA FROM PILOT TABLE
+        [HttpGet]
+        [Microsoft.AspNetCore.Mvc.Route("GetProfile")]
+        public JsonResult GetProfile()
+
+        {
+            string query = "select * from pilot WHERE pilotID=2";
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
+            SqlDataReader myReader;
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                myCon.Open();
+
+                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+
+                {
+                    myReader = myCommand.ExecuteReader();
+                    table.Load(myReader);
+                    myReader.Close();
+                    myCon.Close();
+                }
+            }
+            return new JsonResult(table);
+        }
+
         //RETRIEVING DATA FROM LOGENTRY TABLE
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetLogs")]
