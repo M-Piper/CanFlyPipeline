@@ -522,7 +522,7 @@ namespace CanFlyPipeline.Controllers
                 END AS HoursStatus,
 
                 CASE
-                    WHEN r.crossCountryStopsRequired IS NOT NULL AND r.crossCountryDistanceRequired IS NOT NULL THEN CONCAT('Completed on ', l.crossCountryDate)
+                    WHEN r.crossCountryStopsRequired IS NOT NULL AND r.crossCountryDistanceRequired IS NOT NULL THEN CONCAT('150NM with 2 stops completed on ', l.crossCountryDate)
                 END AS CrossCountryStatus,
   
  	            CASE WHEN r.instrumentGroundOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalInstrumentSim, 0), ' / ', r.instrumentGroundOptional)
