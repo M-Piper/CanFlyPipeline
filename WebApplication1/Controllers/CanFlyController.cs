@@ -415,136 +415,132 @@ namespace CanFlyPipeline.Controllers
 
         {
             string query = @"
-        -- Temporary table to store the requirements
-        IF OBJECT_ID('tempdb..#Requirements') IS NOT NULL
-        BEGIN
-            DROP TABLE #Requirements;
-        END
-            
-        CREATE TABLE #Requirements (
-        requirementsID INT,
-        ratingTypeID INT,
-        dualSoloTotalCredit VARCHAR(50),
-        thisEntryHoursRequired DECIMAL(10, 2),
-        instrumentFlightRequired DECIMAL(10, 2),
-        crossCountryRequired DECIMAL(10, 2),
-        crossCountryStopsRequired INT,
-        crossCountryDistanceRequired DECIMAL(10, 2),
-        simulatorOptional DECIMAL(10, 2),
-        documentTypeID INT,
-        instrumentGroundOptional DECIMAL(10, 2), -- Refers to instrument dual simulator
-        parentRequirementsID INT,
-        displayName VARCHAR(100), 
-	    hierarchy VARCHAR(255)
-    );
+           -- Temporary table to store the requirements
+                IF OBJECT_ID('tempdb..#Requirements') IS NOT NULL
+                BEGIN
+                    DROP TABLE #Requirements;
+                END
+        
+                CREATE TABLE #Requirements (
+                requirementsID INT,
+                ratingTypeID INT,
+                dualSoloTotalCredit VARCHAR(50),
+                thisEntryHoursRequired DECIMAL(10, 2),
+                instrumentFlightRequired DECIMAL(10, 2),
+                crossCountryRequired DECIMAL(10, 2),
+                crossCountryStopsRequired INT,
+                crossCountryDistanceRequired DECIMAL(10, 2),
+                simulatorOptional DECIMAL(10, 2),
+                documentTypeID INT,
+                instrumentGroundOptional DECIMAL(10, 2), -- Refers to instrument dual simulator
+                parentRequirementsID INT,
+                displayName VARCHAR(100), 
+                hierarchy VARCHAR(255)
+            );
 
-    -- Insert the requirements for ratingTypeID = 1 (Private Pilot's License)
-    INSERT INTO #Requirements
-    SELECT requirementsID, ratingTypeID, dualSoloTotalCredit, thisEntryHoursRequired, instrumentFlightRequired, crossCountryRequired, crossCountryStopsRequired, crossCountryDistanceRequired, simulatorOptional, documentTypeID, instrumentGroundOptional, parentRequirementsID, displayName, hierarchy
-    FROM requirements
-    WHERE ratingTypeID = 1;
+            -- Insert the requirements for ratingTypeID = 1 (Private Pilot's License)
+            INSERT INTO #Requirements
+            SELECT requirementsID, ratingTypeID, dualSoloTotalCredit, thisEntryHoursRequired, instrumentFlightRequired, crossCountryRequired, crossCountryStopsRequired, crossCountryDistanceRequired, simulatorOptional, documentTypeID, instrumentGroundOptional, parentRequirementsID, displayName, hierarchy
+            FROM requirements
+            WHERE ratingTypeID = 1;
 
-    -- Temporary table to store the pilot's aggregated log entries
-    IF OBJECT_ID('tempdb..#PilotLogAggregated') IS NOT NULL
-    BEGIN
-        DROP TABLE #PilotLogAggregated;
-    END
+            -- Temporary table to store the pilot's aggregated log entries
+            IF OBJECT_ID('tempdb..#PilotLogAggregated') IS NOT NULL
+            BEGIN
+                DROP TABLE #PilotLogAggregated;
+            END
 
-    CREATE TABLE #PilotLogAggregated (
-        totalHours DECIMAL(10, 2),
-        totalDual DECIMAL(10, 2),
-        totalInstrument DECIMAL(10, 2),
-        totalInstrumentSim DECIMAL(10, 2),
-        totalCrossCountry DECIMAL(10, 2),
-        totalDualCrossCountry DECIMAL(10, 2),
-        totalSoloCrossCountry DECIMAL(10, 2),
-        totalPIC DECIMAL(10, 2),
-        totalSimulator DECIMAL(10, 2), --both instrument sim and VFR
-        soloCrossCountryTripStops INT,
-        soloCrossCountryDistance DECIMAL(10, 2)
-    );
+            CREATE TABLE #PilotLogAggregated (
+                totalHours DECIMAL(10, 2),
+                totalDual DECIMAL(10, 2),
+                totalInstrument DECIMAL(10, 2),
+                totalInstrumentSim DECIMAL(10, 2),
+                totalCrossCountry DECIMAL(10, 2),
+                totalDualCrossCountry DECIMAL(10, 2),
+                totalSoloCrossCountry DECIMAL(10, 2),
+                totalPIC DECIMAL(10, 2),
+                totalSimulator DECIMAL(10, 2), --both instrument sim and VFR
+                soloCrossCountryTripStops INT,
+                soloCrossCountryDistance DECIMAL(10, 2),
+	            crossCountryDate DATE
+            );
 
-    -- Aggregate the log entries for pilotID = 2
-    INSERT INTO #PilotLogAggregated
-    SELECT
-        SUM(COALESCE(singleEngineDayDualTime, 0) +
-            COALESCE(singleEngineDayPICTime, 0) +
-            COALESCE(singleEngineNightDualTime, 0) +
-            COALESCE(singleEngineNightPICTime, 0) +
-            COALESCE(multiEngineDayDualTime, 0) +
-            COALESCE(multiEngineDayPICTime, 0) +
-            COALESCE(multiEngineDaySICTime, 0) +
-            COALESCE(multiEngineNightDualTime, 0) +
-            COALESCE(multiEngineNightPICTime, 0) +
-            COALESCE(multiEngineNightSICTime, 0) +
-            COALESCE(instrumentActualTime, 0) +
-            COALESCE(instrumentHoodTime, 0)) AS totalHours,
-        SUM(COALESCE(singleEngineDayDualTime, 0) +
-            COALESCE(singleEngineNightDualTime, 0) +
-            COALESCE(multiEngineDayDualTime, 0) +
-            COALESCE(multiEngineNightDualTime, 0)) AS totalDual,
-        SUM(COALESCE(instrumentActualTime, 0) +
-            COALESCE(instrumentHoodTime, 0)) AS totalInstrument,
-        SUM(COALESCE(instrumentSimulatorDualTime, 0)) AS totalInstrumentSim,
-        SUM(COALESCE(crossCountryDayDualTime, 0) +
-            COALESCE(crossCountryNightDualTime, 0) +
-            COALESCE(crossCountryDayPICTime, 0) +
-            COALESCE(crossCountryNightPICTime, 0)) AS totalCrossCountry,
-        SUM(COALESCE(crossCountryDayDualTime, 0) +
-            COALESCE(crossCountryNightDualTime, 0)) AS totalDualCrossCountry,
-        SUM(COALESCE(crossCountryDayPICTime, 0) +
-            COALESCE(crossCountryNightPICTime, 0)) AS totalSoloCrossCountry,
-        SUM(COALESCE(singleEngineDayPICTime, 0) +
-            COALESCE(singleEngineNightPICTime, 0) +
-            COALESCE(multiEngineDayPICTime, 0) +
-            COALESCE(multiEngineNightPICTime, 0)) AS totalPIC,
-        SUM(COALESCE(VFRsimulatorDualTime, 0) + 
-            COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator, --both instrument sim and VFR
-        MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN landings - 1 ELSE 0 END) AS soloCrossCountryTripStops,
-        MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN crossCountryDistance ELSE 0 END) AS soloCrossCountryDistance
-    FROM logEntry
-    WHERE pilotID = 2;
+            -- Aggregate the log entries for pilotID = 2
+            INSERT INTO #PilotLogAggregated
+            SELECT
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalHours,
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineNightDualTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0)) AS totalDual,
+                SUM(COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS totalInstrument,
+                SUM(COALESCE(instrumentSimulatorDualTime, 0)) AS totalInstrumentSim,
+                SUM(COALESCE(crossCountryDayDualTime, 0) +
+                    COALESCE(crossCountryNightDualTime, 0) +
+                    COALESCE(crossCountryDayPICTime, 0) +
+                    COALESCE(crossCountryNightPICTime, 0)) AS totalCrossCountry,
+                SUM(COALESCE(crossCountryDayDualTime, 0) +
+                    COALESCE(crossCountryNightDualTime, 0)) AS totalDualCrossCountry,
+                SUM(COALESCE(crossCountryDayPICTime, 0) +
+                    COALESCE(crossCountryNightPICTime, 0)) AS totalSoloCrossCountry,
+                SUM(COALESCE(singleEngineDayPICTime, 0) +
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0)) AS totalPIC,
+                SUM(COALESCE(VFRsimulatorDualTime, 0) + 
+                    COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator, --both instrument sim and VFR
+                MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN landings-1 ELSE 0 END) AS soloCrossCountryTripStops,
+                MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN crossCountryDistance ELSE 0 END) AS soloCrossCountryDistance,
+	            MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN date ELSE NULL END) AS crossCountryDate
+            FROM logEntry
+            WHERE pilotID = 2;
 
-    -- Compare the requirements with the pilot's aggregated log entries and display the progress
-    SELECT
-        r.requirementsID,
-        r.displayName,
-        CASE
-            WHEN r.displayName LIKE 'Total Hours%' THEN CONCAT(ISNULL(l.totalHours, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
-            WHEN r.displayName LIKE 'Total Dual%' THEN CONCAT(ISNULL(l.totalDual, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
-            WHEN r.displayName LIKE 'Dual Instrument%' THEN CONCAT(ISNULL(l.totalInstrument, 0), ' / ', r.instrumentFlightRequired, ' hours completed')
-            WHEN r.displayName LIKE 'Dual Cross%' THEN CONCAT(ISNULL(l.totalDualCrossCountry, 0), ' / ', r.crossCountryRequired, ' hours completed')
-            WHEN r.displayName LIKE 'Total Solo%' THEN CONCAT(ISNULL(l.totalPIC, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
-            WHEN r.displayName LIKE 'Solo Cross%' THEN CONCAT(ISNULL(l.totalSoloCrossCountry, 0), ' / ', r.crossCountryRequired, ' hours completed')
-            --WHEN r.displayName LIKE 'Instrument Simulator%' THEN CONCAT(ISNULL(l.totalInstrumentSim, 0), ' / ', r.instrumentGroundOptional, ' hours completed on instrument simulator')
-            --WHEN r.displayName LIKE 'VFR Simulator%' THEN CONCAT(ISNULL(l.totalSimulator, 0), ' / ', r.simulatorOptional, ' hours completed on VFR simulator')
-            ELSE 'N/A'
-        END AS HoursStatus,
-	    CASE
-            WHEN r.crossCountryStopsRequired IS NOT NULL THEN CONCAT(ISNULL(l.soloCrossCountryTripStops, 0), ' / ', r.crossCountryStopsRequired, ' stops completed')
-		    ELSE NULL
+            -- Compare the requirements with the pilot's aggregated log entries and display the progress
+            SELECT
+                r.requirementsID,
+                r.displayName,
+                CASE
+                    WHEN r.displayName LIKE 'Total Hours%' THEN CONCAT(ISNULL(l.totalHours, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
+                    WHEN r.displayName LIKE 'Total Dual%' THEN CONCAT(ISNULL(l.totalDual, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
+                    WHEN r.displayName LIKE 'Dual Instrument%' THEN CONCAT(ISNULL(l.totalInstrument, 0), ' / ', r.instrumentFlightRequired, ' hours completed')
+                    WHEN r.displayName LIKE 'Dual Cross%' THEN CONCAT(ISNULL(l.totalDualCrossCountry, 0), ' / ', r.crossCountryRequired, ' hours completed')
+                    WHEN r.displayName LIKE 'Total Solo%' THEN CONCAT(ISNULL(l.totalPIC, 0), ' / ', r.thisEntryHoursRequired, ' hours completed')
+                    WHEN r.displayName LIKE 'Solo Cross%' THEN CONCAT(ISNULL(l.totalSoloCrossCountry, 0), ' / ', r.crossCountryRequired, ' hours completed')
+                    ELSE 'N/A'
+                END AS HoursStatus,
 
-        END AS CrossCountryStops,
-	    CASE
-            WHEN r.crossCountryDistanceRequired IS NOT NULL THEN CONCAT(ISNULL(l.soloCrossCountryDistance, 0), ' / ', r.crossCountryDistanceRequired, ' nautical miles completed')
-            ELSE NULL
-        END AS CrossCountryDistanceStatus,
-  	    CASE WHEN r.instrumentGroundOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalInstrumentSim, 0), ' / ', r.instrumentGroundOptional)
-	    ELSE NULL
+                CASE
+                    WHEN r.crossCountryStopsRequired IS NOT NULL AND r.crossCountryDistanceRequired IS NOT NULL THEN CONCAT('Completed on ', l.crossCountryDate)
+                END AS CrossCountryStatus,
+  
+ 	            CASE WHEN r.instrumentGroundOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalInstrumentSim, 0), ' / ', r.instrumentGroundOptional)
+                ELSE NULL
+                END AS InstrumentSim,
 
-        END AS InstrumentSim,
-	    CASE WHEN r.simulatorOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalSimulator, 0), ' / ', r.simulatorOptional)
-	    ELSE NULL
+                CASE WHEN r.simulatorOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalSimulator, 0), ' / ', r.simulatorOptional)
+                ELSE NULL
+                END AS TotalSim,
 
-        END AS TotalSim,
-	    r.parentRequirementsID,
-	    r.hierarchy
-        FROM #Requirements r
-	    LEFT JOIN #PilotLogAggregated l ON 1 = 1; -- Cross join to compare each requirement with the aggregated log
-    
-        -- Drop temporary tables
-        DROP TABLE #Requirements;
-        DROP TABLE #PilotLogAggregated;";
+                r.parentRequirementsID,
+                r.hierarchy
+                FROM #Requirements r
+                LEFT JOIN #PilotLogAggregated l ON 1 = 1; -- Cross join to compare each requirement with the aggregated log
+
+                -- Drop temporary tables
+                DROP TABLE #Requirements;
+                DROP TABLE #PilotLogAggregated;";
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
