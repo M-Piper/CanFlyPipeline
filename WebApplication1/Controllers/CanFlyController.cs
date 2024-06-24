@@ -787,19 +787,17 @@ namespace CanFlyPipeline.Controllers
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
+            SqlDataReader myReader;
 
             using (SqlConnection myCon = new SqlConnection(sqlDatasource))
             {
+                myCon.Open();
                 using (SqlCommand myCommand = new SqlCommand(query, myCon))
                 {
-                    myCommand.Parameters.AddWithValue("@PilotId", pilotId);
-                    myCon.Open();
-                    using (SqlDataReader myReader = myCommand.ExecuteReader())
-                    {
-                        table.Load(myReader);
-                        myReader.Close();
-                        myCon.Close();
-                    }
+                    myReader = myCommand.ExecuteReader();
+                    table.Load(myReader);
+                    myReader.Close();
+                    myCon.Close();
                 }
             }
 
