@@ -777,7 +777,7 @@ namespace CanFlyPipeline.Controllers
         //RETRIEVE COMPLETED RATINGS FOR DEMO PILOT (PILOTID = 2)
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetCompletedRatings")]
-        public JsonResult GetCompletedRatings(int pilotId)
+        public JsonResult GetCompletedRatings()
         {
             string query = @"
             SELECT r.longName, r.shortName, ra.dateAwarded 
