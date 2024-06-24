@@ -459,7 +459,7 @@ namespace CanFlyPipeline.Controllers
         totalDualCrossCountry DECIMAL(10, 2),
         totalSoloCrossCountry DECIMAL(10, 2),
         totalPIC DECIMAL(10, 2),
-        totalSimulator DECIMAL(10, 2),
+        totalSimulator DECIMAL(10, 2), --both instrument sim and VFR
         soloCrossCountryTripStops INT,
         soloCrossCountryDistance DECIMAL(10, 2)
     );
@@ -499,7 +499,7 @@ namespace CanFlyPipeline.Controllers
             COALESCE(multiEngineDayPICTime, 0) +
             COALESCE(multiEngineNightPICTime, 0)) AS totalPIC,
         SUM(COALESCE(VFRsimulatorDualTime, 0) + 
-            COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator,
+            COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator, --both instrument sim and VFR
         MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN landings - 1 ELSE 0 END) AS soloCrossCountryTripStops,
         MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN crossCountryDistance ELSE 0 END) AS soloCrossCountryDistance
     FROM logEntry
@@ -536,7 +536,7 @@ namespace CanFlyPipeline.Controllers
 	    CASE WHEN r.simulatorOptional IS NOT NULL THEN CONCAT(ISNULL(l.totalSimulator, 0), ' / ', r.simulatorOptional)
 	    ELSE NULL
 
-        END AS VFRSim,
+        END AS TotalSim,
 	    r.parentRequirementsID,
 	    r.hierarchy
         FROM #Requirements r
