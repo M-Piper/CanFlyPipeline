@@ -839,7 +839,7 @@ namespace CanFlyPipeline.Controllers
                     COALESCE(instrumentHoodTime, 0)) AS TotalHours
             FROM logEntry
             WHERE pilotID = 2
-            GROUP BY pilotID;
+            GROUP BY pilotID;"
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
