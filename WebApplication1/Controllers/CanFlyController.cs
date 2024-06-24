@@ -783,7 +783,7 @@ namespace CanFlyPipeline.Controllers
             SELECT r.longName, r.shortName, ra.dateAwarded 
             FROM rating AS ra 
             JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
-            WHERE ra.pilotID = @PilotId AND ra.isWorkingTowards IS NULL;";
+            WHERE ra.pilotID = 2 AND ra.isWorkingTowards IS NULL;";
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
@@ -827,14 +827,21 @@ namespace CanFlyPipeline.Controllers
             string query = @"
             SELECT 
                 ROUND(
-                SUM(
-                    COALESCE(singleEngineDayDualTime, 0) + 
-                    COALESCE(singleEngineDayPICTime, 0) + 
+                SUM(COALESCE(singleEngineDayDualTime, 0) +
+                    COALESCE(singleEngineDayPICTime, 0) +
                     COALESCE(singleEngineNightDualTime, 0) +
-                    COALESCE(singleEngineNightPICTime, 0)
-                ),
-                2) as TotalHours
-            FROM logEntry;";
+                    COALESCE(singleEngineNightPICTime, 0) +
+                    COALESCE(multiEngineDayDualTime, 0) +
+                    COALESCE(multiEngineDayPICTime, 0) +
+                    COALESCE(multiEngineDaySICTime, 0) +
+                    COALESCE(multiEngineNightDualTime, 0) +
+                    COALESCE(multiEngineNightPICTime, 0) +
+                    COALESCE(multiEngineNightSICTime, 0) +
+                    COALESCE(instrumentActualTime, 0) +
+                    COALESCE(instrumentHoodTime, 0)) AS TotalHours
+            FROM logEntry
+            WHERE pilotID = 2
+            GROUP BY pilotID;
 
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
