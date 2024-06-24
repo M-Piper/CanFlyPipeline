@@ -498,7 +498,8 @@ namespace CanFlyPipeline.Controllers
             COALESCE(singleEngineNightPICTime, 0) +
             COALESCE(multiEngineDayPICTime, 0) +
             COALESCE(multiEngineNightPICTime, 0)) AS totalPIC,
-        SUM(COALESCE(VFRsimulatorDualTime, 0)) AS totalSimulator,
+        SUM(COALESCE(VFRsimulatorDualTime, 0) + 
+            COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator,
         MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN landings - 1 ELSE 0 END) AS soloCrossCountryTripStops,
         MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL THEN crossCountryDistance ELSE 0 END) AS soloCrossCountryDistance
     FROM logEntry
