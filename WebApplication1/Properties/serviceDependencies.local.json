@@ -7,16 +7,16 @@
     "secrets1": {
       "type": "secrets.user"
     },
-    "identityapp1": {
-      "connectionInfo": "App registration: CanFly, Tenant: LAC (LAC479.onmicrosoft.com - Microsoft Entra ID)",
-      "type": "identityapp.default"
-    },
     "mssql1": {
       "serviceConnectorResourceId": "",
       "secretStore": "LocalSecretsFile",
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:CanFlyDBConn",
       "dynamicId": null
+    },
+    "apis1": {
+      "ignored": "true",
+      "type": "apis"
     }
   }
 }
