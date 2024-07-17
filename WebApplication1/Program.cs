@@ -6,7 +6,6 @@ using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Add authorization policies
 builder.Services.AddAuthorization();
 
@@ -26,6 +25,10 @@ builder.Services.AddSwaggerGen(c =>
 
 // Application Insights Telemetry (if needed)
 // builder.Services.AddApplicationInsightsTelemetry();
+
+// Get the port from the environment variable set by Railway
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
 
 var app = builder.Build();
 
