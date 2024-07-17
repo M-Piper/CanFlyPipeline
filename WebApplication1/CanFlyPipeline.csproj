@@ -38,4 +38,8 @@
     <Folder Include="Properties\ServiceDependencies\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\.github\workflows\master_canfly-backend.yml" Link="master_canfly-backend.yml" />
+  </ItemGroup>
+
 </Project>
