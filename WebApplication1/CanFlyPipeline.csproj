@@ -34,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="out\" />
     <Folder Include="Properties\ServiceDependencies\" />
   </ItemGroup>
 

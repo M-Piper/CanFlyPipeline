@@ -6,21 +6,6 @@ using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add authentication for JWT Bearer tokens
-/*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "https://login.microsoftonline.com/your-tenant-id"; // Replace with your Railway authentication authority
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = "https://localhost:7004", // Replace with your Railway issuer URL
-            ValidateAudience = true,
-            ValidAudience = "https://localhost:7004", // Replace with your Railway audience URL
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });*/
 
 // Add authorization policies
 builder.Services.AddAuthorization();
