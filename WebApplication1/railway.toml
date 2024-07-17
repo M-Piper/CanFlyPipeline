@@ -3,5 +3,5 @@ builder = "dockerfile"
 dockerfilePath = "./Dockerfile"
 
 [deploy]
-startCommand = "dotnet WebApplication1.dll"
+startCommand = "dotnet CanFlyPipeline.dll"
 restartPolicyType = "never"

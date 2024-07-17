@@ -1,24 +1,31 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+# See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
+# Define base image with .NET 8.0 SDK
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+
+# Set the working directory
 WORKDIR /app
-EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["WebApplication1/CanFlyPipeline.csproj", "WebApplication1/"]
-RUN dotnet restore "./WebApplication1/CanFlyPipeline.csproj"
-COPY . .
-WORKDIR "/src/WebApplication1"
-RUN dotnet build "./CanFlyPipeline.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# Copy project files to the container
+COPY . ./
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CanFlyPipeline.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Restore dependencies
+RUN dotnet restore
 
-FROM base AS final
+# Build the application
+RUN dotnet publish -c Release -o out
+
+# Define runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+# Set the working directory
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copy build artifacts from build image
+COPY --from=build-env /app/out .
+
+# Expose the port your application will run on
+EXPOSE 80
+
+# Set the entry point for the container
 ENTRYPOINT ["dotnet", "CanFlyPipeline.dll"]
