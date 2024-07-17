@@ -46,6 +46,6 @@ jobs:
       - name: Deploy to Railway
         uses: railwayapp/action-deploy@v1
         with:
-          command: 'railway run --command "dotnet ./publish/CanFlyPipeline.dll"'
+          command: 'railway run --command "dotnet CanFlyPipeline.dll"'
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
