@@ -5,9 +5,12 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-
+using CanFlyPipeline; // Add this to include the db class
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Test database connection
+db.TestDatabaseConnection(); // Call the method to test the database connection
 
 // Add authorization policies
 builder.Services.AddAuthorization();
@@ -79,3 +82,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
