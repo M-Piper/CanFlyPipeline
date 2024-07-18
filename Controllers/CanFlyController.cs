@@ -685,7 +685,7 @@ namespace CanFlyPipeline.Controllers
                                 var record = new
                                 {
                                     logEntryID = reader["logEntryID"] as decimal?,
-                                    date = reader["date"] as DateTime?,
+                                    date = reader["entryDate"] as DateTime?,
                                     registration = reader["registration"] as string,
                                     pilotInCommand = reader["pilotInCommand"] as string,
                                     studentOrCoPilot = reader["studentOrCoPilot"] as string,
@@ -747,44 +747,37 @@ namespace CanFlyPipeline.Controllers
         }
 
 
-        //DELETING ROWS FROM LOGENTRY TABLE
+        // DELETING ROWS FROM LOGENTRY TABLE
         [HttpDelete]
         [Microsoft.AspNetCore.Mvc.Route("DeleteLogs")]
         public JsonResult DeleteNotes(string id)
         {
-            string query = "delete from logEntry where logEntryID=@logEntryID";
+            string query = "DELETE FROM logEntry WHERE logEntryID=@logEntryID";
             DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+
+            using (MySqlConnection myCon = new MySqlConnection(sqlDatasource))
             {
-
                 myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (MySqlCommand myCommand = new MySqlCommand(query, myCon))
                 {
-
                     myCommand.Parameters.AddWithValue("@logEntryID", id);
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-
+                    using (MySqlDataReader myReader = myCommand.ExecuteReader())
+                    {
+                        table.Load(myReader);
+                        myReader.Close();
+                    }
                 }
+                myCon.Close();
             }
             return new JsonResult("Deleted Successfully");
         }
 
-
-
+        // ADDING A NEW LOG ENTRY
         [HttpPost]
-
         [Microsoft.AspNetCore.Mvc.Route("AddNotes")]
-
-        public JsonResult AddNotes([FromBody] LogEntryModel logentrymodel)
-
+        public async Task<IActionResult> AddNotes([FromBody] LogEntryModel logentrymodel)
         {
-
             string query = @"INSERT INTO logEntry (
                 date, registration, pilotInCommand, studentOrCoPilot, activityExercises, 
                 singleEngineDayDualTime, singleEngineDayPICTime, singleEngineNightDualTime, singleEngineNightPICTime, 
@@ -811,210 +804,212 @@ namespace CanFlyPipeline.Controllers
                 @LaunchLocationGlider, @DistanceGlider, @LaunchTypeGlider, 
                 @AircraftCategory, @AircraftTypeID, 2)";
 
-
-            DataTable table = new DataTable();
-
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-
-            SqlDataReader myReader;
-
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
-
+            try
             {
-
-                myCon.Open();
-
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myCommand.Parameters.AddWithValue("@date", logentrymodel.date).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@registration", logentrymodel.registration).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@pilotInCommand", logentrymodel.pilotInCommand).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@studentOrCoPilot", logentrymodel.studentOrCoPilot).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@activityExercises", logentrymodel.activityExercises).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@singleEngineDayDualTime", logentrymodel.singleEngineDayDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@singleEngineDayPICTime", logentrymodel.singleEngineDayPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@singleEngineNightDualTime", logentrymodel.singleEngineNightDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@singleEngineNightPICTime", logentrymodel.singleEngineNightPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineDayDualTime", logentrymodel.multiEngineDayDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineDayPICTime", logentrymodel.multiEngineDayPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineDaySICTime", logentrymodel.multiEngineDaySICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightDualTime", logentrymodel.multiEngineNightDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightPICTime", logentrymodel.multiEngineNightPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@multiEngineNightSICTime", logentrymodel.multiEngineNightSICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@instrumentActualTime", logentrymodel.instrumentActualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@instrumentHoodTime", logentrymodel.instrumentHoodTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@instrumentSimulatorDualTime", logentrymodel.instrumentSimulatorDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@instrumentApproachesCount", logentrymodel.instrumentApproachesCount).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@crossCountryDayDualTime", logentrymodel.crossCountryDayDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@crossCountryDayPICTime", logentrymodel.crossCountryDayPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@crossCountryNightDualTime", logentrymodel.crossCountryNightDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@crossCountryNightPICTime", logentrymodel.crossCountryNightPICTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@crossCountryDistance", logentrymodel.crossCountryDistance).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@routeFrom", logentrymodel.routeFrom).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@routeVia", logentrymodel.routeVia).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@routeTo", logentrymodel.routeTo).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@dualInstructionGivenTime", logentrymodel.dualInstructionGivenTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@floatTime", logentrymodel.floatTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@VFRSimulatorDualTime", logentrymodel.VFRSimulatorDualTime).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@CAF", logentrymodel.CAF).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@takeOffs", logentrymodel.takeOffs).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@landings", logentrymodel.landings).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@circuits", logentrymodel.circuits).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@omitFromReports", logentrymodel.omitFromReports).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@untetheredBalloon", logentrymodel.untetheredBalloon).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@altitudeBalloon", logentrymodel.altitudeBalloon).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@outsideCanada", logentrymodel.outsideCanada).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@launchLocationGlider", logentrymodel.launchLocationGlider).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@distanceGlider", logentrymodel.distanceGlider).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@launchTypeGlider", logentrymodel.launchTypeGlider).Value ??= DBNull.Value;
-                    myCommand.Parameters.AddWithValue("@aircraftTypeID", logentrymodel.aircraftTypeID).Value = 149;
-                    myCommand.Parameters.AddWithValue("@aircraftCategory", logentrymodel.aircraftCategory).Value ??= DBNull.Value;
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Date", logentrymodel.date ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Registration", logentrymodel.registration ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@PilotInCommand", logentrymodel.pilotInCommand ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@StudentOrCoPilot", logentrymodel.studentOrCoPilot ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@ActivityExercises", logentrymodel.activityExercises ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@SingleEngineDayDualTime", logentrymodel.singleEngineDayDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@SingleEngineDayPICTime", logentrymodel.singleEngineDayPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@SingleEngineNightDualTime", logentrymodel.singleEngineNightDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@SingleEngineNightPICTime", logentrymodel.singleEngineNightPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineDayDualTime", logentrymodel.multiEngineDayDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineDayPICTime", logentrymodel.multiEngineDayPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineDaySICTime", logentrymodel.multiEngineDaySICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineNightDualTime", logentrymodel.multiEngineNightDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineNightPICTime", logentrymodel.multiEngineNightPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@MultiEngineNightSICTime", logentrymodel.multiEngineNightSICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@InstrumentActualTime", logentrymodel.instrumentActualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@InstrumentHoodTime", logentrymodel.instrumentHoodTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@InstrumentSimulatorDualTime", logentrymodel.instrumentSimulatorDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@InstrumentApproachesCount", logentrymodel.instrumentApproachesCount ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CrossCountryDayDualTime", logentrymodel.crossCountryDayDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CrossCountryDayPICTime", logentrymodel.crossCountryDayPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CrossCountryNightDualTime", logentrymodel.crossCountryNightDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CrossCountryNightPICTime", logentrymodel.crossCountryNightPICTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CrossCountryDistance", logentrymodel.crossCountryDistance ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@RouteFrom", logentrymodel.routeFrom ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@RouteVia", logentrymodel.routeVia ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@RouteTo", logentrymodel.routeTo ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@DualInstructionGivenTime", logentrymodel.dualInstructionGivenTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@FloatTime", logentrymodel.floatTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@VFRSimulatorDualTime", logentrymodel.VFRSimulatorDualTime ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@CAF", logentrymodel.CAF ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@TakeOffs", logentrymodel.takeOffs ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Landings", logentrymodel.landings ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Circuits", logentrymodel.circuits ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@OmitFromReports", logentrymodel.omitFromReports ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@UntetheredBalloon", logentrymodel.untetheredBalloon ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@AltitudeBalloon", logentrymodel.altitudeBalloon ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@OutsideCanada", logentrymodel.outsideCanada ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@LaunchLocationGlider", logentrymodel.launchLocationGlider ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@DistanceGlider", logentrymodel.distanceGlider ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@LaunchTypeGlider", logentrymodel.launchTypeGlider ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@AircraftCategory", logentrymodel.aircraftCategory ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@AircraftTypeID", logentrymodel.aircraftTypeID ?? (object)DBNull.Value);
 
-
-                    myReader = myCommand.ExecuteReader();
-
-                    table.Load(myReader);
-
-                    myReader.Close();
-
-                    myCon.Close();
-
+                        await command.ExecuteNonQueryAsync();
+                    }
                 }
+                return Ok("Added Successfully");
             }
-            return new JsonResult("Added Successfully");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding the log entry");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
-        //GET RATINGS THAT ARE IN PROGRESS FOR DEMO PILOT (PILOTID = 2)
+        // GET RATINGS THAT ARE IN PROGRESS FOR DEMO PILOT (PILOTID = 2)
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetInProgressRatings")]
-        public JsonResult GetInProgressRatings(int pilotId)
+        public async Task<IActionResult> GetInProgressRatings(int pilotId)
         {
             string query = @"
-            SELECT r.longName, r.shortName
-            FROM rating AS ra 
-            JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
-            WHERE ra.pilotID = ? AND ra.isWorkingTowards>0;";
+    SELECT r.longName, r.shortName
+    FROM rating AS ra 
+    JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
+    WHERE ra.pilotID = @PilotId AND ra.isWorkingTowards > 0;";
 
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myCommand.Parameters.AddWithValue("@PilotId", pilotId);
-                    myCon.Open();
-                    using (SqlDataReader myReader = myCommand.ExecuteReader())
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
                     {
-                        table.Load(myReader);
-                        myReader.Close();
-                        myCon.Close();
+                        command.Parameters.AddWithValue("@PilotId", pilotId);
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var ratings = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    LongName = reader["longName"] as string,
+                                    ShortName = reader["shortName"] as string
+                                };
+
+                                ratings.Add(record);
+                            }
+                            return Ok(ratings); // This returns JSON
+                        }
                     }
                 }
             }
-
-            var ratings = new List<object>();
-            foreach (DataRow row in table.Rows)
+            catch (Exception ex)
             {
-                ratings.Add(new
-                {
-                    LongName = row["longName"],
-                    ShortName = row["shortName"]
-                });
+                _logger.LogError(ex, "An error occurred while getting the in-progress ratings");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            return new JsonResult(ratings);
         }
-
-
-
-
-        //RETRIEVE COMPLETED RATINGS FOR DEMO PILOT (PILOTID = 2)
+        // RETRIEVE COMPLETED RATINGS FOR DEMO PILOT (PILOTID = 2)
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetCompletedRatings")]
-        public JsonResult GetCompletedRatings()
+        public async Task<IActionResult> GetCompletedRatings()
         {
             string query = @"
-            SELECT r.longName, r.shortName, ra.dateAwarded 
-            FROM rating AS ra 
-            JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
-            WHERE ra.pilotID = 2 AND ra.isWorkingTowards IS NULL;";
+    SELECT r.longName, r.shortName, ra.dateAwarded 
+    FROM rating AS ra 
+    JOIN ratingType AS r ON ra.ratingTypeID = r.ratingTypeID 
+    WHERE ra.pilotID = 2 AND ra.isWorkingTowards IS NULL;";
 
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var ratings = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    LongName = reader["longName"] as string,
+                                    ShortName = reader["shortName"] as string,
+                                    DateAwarded = reader["dateAwarded"] as DateTime?
+                                };
+
+                                ratings.Add(record);
+                            }
+                            return Ok(ratings); // This returns JSON
+                        }
+                    }
                 }
             }
-
-            var ratings = new List<object>();
-            foreach (DataRow row in table.Rows)
+            catch (Exception ex)
             {
-                ratings.Add(new
-                {
-                    LongName = row["longName"],
-                    ShortName = row["shortName"],
-                    DateAwarded = row["dateAwarded"]
-                });
+                _logger.LogError(ex, "An error occurred while getting the completed ratings");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            return new JsonResult(ratings);
         }
 
 
-
-        //RETRIEVING TOTAL SUM OF SINGLE ENGINE HOURS FOR LANDING PAGE
+        // RETRIEVING TOTAL SUM OF SINGLE ENGINE HOURS FOR LANDING PAGE
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetTotalHours")]
-        public JsonResult GetTotalHours()
+        public async Task<IActionResult> GetTotalHours()
         {
             string query = @"
-            SELECT 
-                ROUND(
-                SUM(COALESCE(singleEngineDayDualTime, 0) +
-                    COALESCE(singleEngineDayPICTime, 0) +
-                    COALESCE(singleEngineNightDualTime, 0) +
-                    COALESCE(singleEngineNightPICTime, 0) +
-                    COALESCE(multiEngineDayDualTime, 0) +
-                    COALESCE(multiEngineDayPICTime, 0) +
-                    COALESCE(multiEngineDaySICTime, 0) +
-                    COALESCE(multiEngineNightDualTime, 0) +
-                    COALESCE(multiEngineNightPICTime, 0) +
-                    COALESCE(multiEngineNightSICTime, 0) +
-                    COALESCE(instrumentActualTime, 0) +
-                    COALESCE(instrumentHoodTime, 0)) AS TotalHours
-            FROM logEntry
-            WHERE pilotID = 2
-            GROUP BY pilotID;";
+    SELECT 
+        ROUND(
+        SUM(COALESCE(singleEngineDayDualTime, 0) +
+            COALESCE(singleEngineDayPICTime, 0) +
+            COALESCE(singleEngineNightDualTime, 0) +
+            COALESCE(singleEngineNightPICTime, 0) +
+            COALESCE(multiEngineDayDualTime, 0) +
+            COALESCE(multiEngineDayPICTime, 0) +
+            COALESCE(multiEngineDaySICTime, 0) +
+            COALESCE(multiEngineNightDualTime, 0) +
+            COALESCE(multiEngineNightPICTime, 0) +
+            COALESCE(multiEngineNightSICTime, 0) +
+            COALESCE(instrumentActualTime, 0) +
+            COALESCE(instrumentHoodTime, 0))) AS TotalHours
+    FROM logEntry
+    WHERE pilotID = 2
+    GROUP BY pilotID;";
 
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                var totalHours = new
+                                {
+                                    TotalHours = reader["TotalHours"] as decimal?
+                                };
+                                return Ok(totalHours); // This returns JSON
+                            }
+                            return NotFound(); // No data found for the given pilotID
+                        }
+                    }
                 }
             }
-            return new JsonResult(new { TotalHours = table.Rows[0]["TotalHours"] });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the total hours");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         //RETRIEVING PILOT NAME FOR LANDING PAGE
         [HttpGet]
@@ -1022,7 +1017,7 @@ namespace CanFlyPipeline.Controllers
         //public JsonResult GetName()
         public async Task<IActionResult> GetName()
         {
-            string query = @"SELECT firstName + ' ' + lastName AS FullName FROM pilot WHERE pilotID = 2;";
+            string query = @"SELECT CONCAT(firstName, ' ', lastName) AS FullName FROM pilot WHERE pilotID = 2;";
             try
             {
                 using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
