@@ -1026,17 +1026,15 @@ namespace CanFlyPipeline.Controllers
                     {
                         using (var reader = await command.ExecuteReaderAsync())
                         {
-                            var result = new List<object>();
-                            while (await reader.ReadAsync())
+                            if (await reader.ReadAsync())
                             {
-                                var record = new
+                                var fullName = new
                                 {
                                     FullName = reader["fullName"] as string
                                 };
-                                Console.Write("variable result", result);
-                                result.Add(record);
+                                return Ok(fullName); // This returns JSON
                             }
-                            return Ok(result); // This returns JSON
+                            return NotFound(); // No data found
                         }
                     }
                 }
