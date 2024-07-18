@@ -993,7 +993,7 @@ namespace CanFlyPipeline.Controllers
                             {
                                 var totalHours = new
                                 {
-                                    TotalHours = reader["TotalHours"] as decimal?
+                                    TotalHours = reader["totalHours"] as decimal?
                                 };
                                 return Ok(totalHours); // This returns JSON
                             }
@@ -1031,7 +1031,7 @@ namespace CanFlyPipeline.Controllers
                             {
                                 var record = new
                                 {
-                                    FullName = reader["FullName"] as string
+                                    FullName = reader["fullName"] as string
                                 };
                                 Console.Write("variable result", result);
                                 result.Add(record);
