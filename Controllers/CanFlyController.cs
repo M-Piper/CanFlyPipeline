@@ -398,37 +398,37 @@ namespace CanFlyPipeline.Controllers
                             var result = new List<object>();
                             while (await reader.ReadAsync())
                             {
-                                    var record = new
-                                    {
-                                        displayName = reader["displayName"] as string,
-                                        ratingName = reader["ratingName"] as string,
-                                        ratingStatus = reader["ratingStatus"] as string,
-                                        ratingDate = reader["ratingDate"] as DateTime?,
-                                        medicalName = reader["medicalName"] as string,
-                                        medicalDate = reader["medicalDate"] as DateTime?,
-                                        totalTime = reader["totalTime"] as decimal?,
-                                        totalPIC = reader["totalPIC"] as decimal?,
-                                        totalDual = reader["totalDual"] as decimal?,
-                                        timeOnType = reader["timeOnType"] as decimal?,
-                                        typeName = reader["typeName"] as string,
-                                        totalNight = reader["totalNight"] as decimal?,
-                                        nightNoInstrument = reader["nightNoInstrument"] as decimal?,
-                                        totalInstrument = reader["totalInstrument"] as decimal?,
-                                        totalCrossCountry = reader["totalCrossCountry"] as decimal?,
-                                        totalSim = reader["totalSim"] as decimal?,
-                                        totalInstrumentSim = reader["totalInstrumentSim"] as decimal?,
-                                        totalVFRSim = reader["totalVFRSim"] as decimal?,
-                                        totalLast30Days = reader["totalLast30Days"] as decimal?,
-                                        totalLast90Days = reader["totalLast90Days"] as decimal?,
-                                        totalLast6Months = reader["totalLast6Months"] as decimal?,
-                                        totalLast12Months = reader["totalLast12Months"] as decimal?,
-                                        totalLast24Months = reader["totalLast24Months"] as decimal?,
-                                        totalLast60Months = reader["totalLast60Months"] as decimal?,
-                                        approachesLast6Months = reader["approachesLast6Months"] as decimal?,
-                                        daysSincePIC = reader["daysSincePIC"] as decimal?,
-                                        daysSinceIPC = reader["daysSinceIPC"] as decimal?,
-                                        daysSinceCurrencyUpgrade = reader["daysSinceCurrencyUpgrade"] as decimal?
-                                    };
+                                var record = new
+                                {
+                                    displayName = reader["displayName"] as string,
+                                    ratingName = reader["ratingName"] as string,
+                                    ratingStatus = reader["ratingStatus"] as string,
+                                    ratingDate = reader["ratingDate"] as DateTime?,
+                                    medicalName = reader["medicalName"] as string,
+                                    medicalDate = reader["medicalDate"] as DateTime?,
+                                    totalTime = reader["totalTime"] as decimal?,
+                                    totalPIC = reader["totalPIC"] as decimal?,
+                                    totalDual = reader["totalDual"] as decimal?,
+                                    timeOnType = reader["timeOnType"] as decimal?,
+                                    typeName = reader["typeName"] as string,
+                                    totalNight = reader["totalNight"] as decimal?,
+                                    nightNoInstrument = reader["nightNoInstrument"] as decimal?,
+                                    totalInstrument = reader["totalInstrument"] as decimal?,
+                                    totalCrossCountry = reader["totalCrossCountry"] as decimal?,
+                                    totalSim = reader["totalSim"] as decimal?,
+                                    totalInstrumentSim = reader["totalInstrumentSim"] as decimal?,
+                                    totalVFRSim = reader["totalVFRSim"] as decimal?,
+                                    totalLast30Days = reader["totalLast30Days"] as decimal?,
+                                    totalLast90Days = reader["totalLast90Days"] as decimal?,
+                                    totalLast6Months = reader["totalLast6Months"] as decimal?,
+                                    totalLast12Months = reader["totalLast12Months"] as decimal?,
+                                    totalLast24Months = reader["totalLast24Months"] as decimal?,
+                                    totalLast60Months = reader["totalLast60Months"] as decimal?,
+                                    approachesLast6Months = reader["approachesLast6Months"] as decimal?,
+                                    daysSincePIC = reader["daysSincePIC"] as decimal?,
+                                    daysSinceIPC = reader["daysSinceIPC"] as decimal?,
+                                    daysSinceCurrencyUpgrade = reader["daysSinceCurrencyUpgrade"] as decimal?
+                                };
 
                                 result.Add(record);
                             }
@@ -919,26 +919,39 @@ namespace CanFlyPipeline.Controllers
         //RETRIEVING PILOT NAME FOR LANDING PAGE
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetName")]
-        public JsonResult GetName()
+        //public JsonResult GetName()
+        public async Task<IActionResult> GetName()
         {
             string query = @"SELECT firstName + ' ' + lastName AS FullName FROM pilot WHERE pilotID = 2;";
-
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var result = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    FullName = reader["FullName"] as string
+                                };
+                                Console.Write("variable result", result);
+                                result.Add(record);
+                            }
+                            return Ok(result); // This returns JSON
+                        }
+                    }
                 }
             }
-            return new JsonResult(new { FullName = table.Rows[0]["FullName"] });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the pilot name");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
