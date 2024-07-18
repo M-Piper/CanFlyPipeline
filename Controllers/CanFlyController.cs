@@ -590,7 +590,7 @@ namespace CanFlyPipeline.Controllers
                                 {
                                     requirementsID = reader["requirementsID"] as decimal?,
                                     displayName = reader["displayName"] as string,
-                                    HouseStatus = reader["HoursStatus"] as string,
+                                    HoursStatus = reader["HoursStatus"] as string,
                                     CrossCountryStatus = reader["CrossCountryStatus"] as string,
                                     InstrumentSim = reader["InstrumentSim"] as string,
                                     TotalSim = reader["TotalSim"] as string,
