@@ -685,7 +685,7 @@ namespace CanFlyPipeline.Controllers
                                 var record = new
                                 {
                                     logEntryID = reader["logEntryID"] as decimal?,
-                                    date = reader["entryDate"] as DateTime?,
+                                    entryDate = reader["entryDate"] as DateTime?,
                                     registration = reader["registration"] as string,
                                     pilotInCommand = reader["pilotInCommand"] as string,
                                     studentOrCoPilot = reader["studentOrCoPilot"] as string,
@@ -715,7 +715,6 @@ namespace CanFlyPipeline.Controllers
                                     dualInstructionGivenTime = reader["dualInstructionGivenTime"] as string,
                                     floatTime = reader["floatTime"] as string,
                                     VFRSimulatorDualTime = reader["VFRSimulatorDualTime"] as string,
-                                    planeTypeID = reader["planeTypeID"] as int?,
                                     pilotID = reader["pilotID"] as int?,
                                     CAF = reader["CAF"] as bool?,
                                     takeOffs = reader["takeOffs"] as int?,

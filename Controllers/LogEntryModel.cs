@@ -3,7 +3,7 @@
     public class LogEntryModel
     {
         public int logEntryID { get; set; }
-        public DateTime? date { get; set; }
+        public DateTime? entryDate { get; set; }
         public string? registration { get; set; }
         public string? pilotInCommand { get; set; }
         public string? studentOrCoPilot { get; set; }
@@ -33,7 +33,6 @@
         public string? dualInstructionGivenTime { get; set; }
         public string? floatTime { get; set; }
         public string? VFRSimulatorDualTime { get; set; }
-        public int? planeTypeID { get; set; }
         public int? pilotID { get; set; }
         public bool? CAF { get; set; }
         public int? takeOffs { get; set; }
