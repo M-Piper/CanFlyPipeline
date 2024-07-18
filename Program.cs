@@ -36,8 +36,7 @@ builder.Services.AddSwaggerGen(c =>
 // builder.Services.AddApplicationInsightsTelemetry();
 
 // Get the port from the environment variable set by Railway
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+var port = 80;
 
 var app = builder.Build();
 
