@@ -27,9 +27,9 @@ namespace CanFlyPipeline
                     // Open the connection
                     connection.Open();
                     Console.WriteLine("Connection to the MySQL database successful.");
-
+                    
                     // Example query to check the connection
-                    string query = "SELECT NOW();";
+                    string query = "SELECT firstName FROM pilot WHERE pilotID IS NOT NULL;";
                     using (var command = new MySqlCommand(query, connection))
                     {
                         // Execute the query and read the result
@@ -37,7 +37,7 @@ namespace CanFlyPipeline
                         {
                             while (reader.Read())
                             {
-                                Console.WriteLine($"Current Date and Time: {reader.GetDateTime(0)}");
+                                Console.WriteLine($"Pilot First Name: {reader.GetString(0)}");
                             }
                         }
                     }
