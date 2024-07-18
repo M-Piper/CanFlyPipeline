@@ -778,7 +778,7 @@ namespace CanFlyPipeline.Controllers
         public async Task<IActionResult> AddNotes([FromBody] LogEntryModel logentrymodel)
         {
             string query = @"INSERT INTO logEntry (
-                date, registration, pilotInCommand, studentOrCoPilot, activityExercises, 
+                entryDate, registration, pilotInCommand, studentOrCoPilot, activityExercises, 
                 singleEngineDayDualTime, singleEngineDayPICTime, singleEngineNightDualTime, singleEngineNightPICTime, 
                 multiEngineDayDualTime, multiEngineDayPICTime, multiEngineDaySICTime, multiEngineNightDualTime, multiEngineNightPICTime, multiEngineNightSICTime, 
                 instrumentActualTime, instrumentHoodTime, instrumentSimulatorDualTime, instrumentApproachesCount, 
@@ -790,7 +790,7 @@ namespace CanFlyPipeline.Controllers
                 launchLocationGlider, distanceGlider, launchTypeGlider, 
                 aircraftCategory, aircraftTypeID, pilotID) 
             VALUES (
-                @Date, @Registration, @PilotInCommand, @StudentOrCoPilot, @ActivityExercises, 
+                @entryDate, @Registration, @PilotInCommand, @StudentOrCoPilot, @ActivityExercises, 
                 @SingleEngineDayDualTime, @SingleEngineDayPICTime, @SingleEngineNightDualTime, @SingleEngineNightPICTime, 
                 @MultiEngineDayDualTime, @MultiEngineDayPICTime, @MultiEngineDaySICTime, @MultiEngineNightDualTime, @MultiEngineNightPICTime, @MultiEngineNightSICTime, 
                 @InstrumentActualTime, @InstrumentHoodTime, @InstrumentSimulatorDualTime, @InstrumentApproachesCount, 
@@ -810,7 +810,7 @@ namespace CanFlyPipeline.Controllers
                     await connection.OpenAsync();
                     using (var command = new MySqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@Date", logentrymodel.date ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@entryDate", logentrymodel.entryDate ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@Registration", logentrymodel.registration ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@PilotInCommand", logentrymodel.pilotInCommand ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@StudentOrCoPilot", logentrymodel.studentOrCoPilot ?? (object)DBNull.Value);
