@@ -35,12 +35,6 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 });
 
-// Application Insights Telemetry (if needed)
-// builder.Services.AddApplicationInsightsTelemetry();
-
-// Get the port from the environment variable set by Railway
-var port = 80;
-
 var app = builder.Build();
 
 // Use Swagger and Swagger UI
