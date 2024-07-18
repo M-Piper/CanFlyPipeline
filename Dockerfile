@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=build-env /app/out .
 
 # Expose the port your application will run on
-EXPOSE 80
+#EXPOSE 80
 
 # Set the entry point for the container
 ENTRYPOINT ["dotnet", "CanFlyPipeline.dll"]
