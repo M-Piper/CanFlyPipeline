@@ -1,8 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +17,13 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+
 });
+
+// Add MySQL DbContext
+builder.Services.AddDbContext<CanFlyDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("CanFlyDBConn"),
+    new MySqlServerVersion(new Version(8, 0, 25))));
 
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

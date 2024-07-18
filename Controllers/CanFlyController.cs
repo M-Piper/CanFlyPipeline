@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Data;
+using MySql.Data.MySqlClient;
 using System.Data.SqlClient;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -16,18 +17,20 @@ namespace CanFlyPipeline.Controllers
     public class CanFlyController : ControllerBase
     {
 
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<CanFlyController> _logger;
 
-        public CanFlyController(IConfiguration configuration)
+        public CanFlyController(IConfiguration configuration, ILogger<CanFlyController> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
 
         //GET PILOT REPORT 
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetPilotReport")]
-        public JsonResult GetPilotreport()
+        public async Task<IActionResult> GetPilotReport()
 
         {
             string query = @"
@@ -383,23 +386,62 @@ namespace CanFlyPipeline.Controllers
                 -- OUTPUT FINAL REPORT
                 SELECT * FROM TempReport;";
 
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var result = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                    var record = new
+                                    {
+                                        displayName = reader["displayName"] as string,
+                                        ratingName = reader["ratingName"] as string,
+                                        ratingStatus = reader["ratingStatus"] as string,
+                                        ratingDate = reader["ratingDate"] as DateTime?,
+                                        medicalName = reader["medicalName"] as string,
+                                        medicalDate = reader["medicalDate"] as DateTime?,
+                                        totalTime = reader["totalTime"] as decimal?,
+                                        totalPIC = reader["totalPIC"] as decimal?,
+                                        totalDual = reader["totalDual"] as decimal?,
+                                        timeOnType = reader["timeOnType"] as decimal?,
+                                        typeName = reader["typeName"] as string,
+                                        totalNight = reader["totalNight"] as decimal?,
+                                        nightNoInstrument = reader["nightNoInstrument"] as decimal?,
+                                        totalInstrument = reader["totalInstrument"] as decimal?,
+                                        totalCrossCountry = reader["totalCrossCountry"] as decimal?,
+                                        totalSim = reader["totalSim"] as decimal?,
+                                        totalInstrumentSim = reader["totalInstrumentSim"] as decimal?,
+                                        totalVFRSim = reader["totalVFRSim"] as decimal?,
+                                        totalLast30Days = reader["totalLast30Days"] as decimal?,
+                                        totalLast90Days = reader["totalLast90Days"] as decimal?,
+                                        totalLast6Months = reader["totalLast6Months"] as decimal?,
+                                        totalLast12Months = reader["totalLast12Months"] as decimal?,
+                                        totalLast24Months = reader["totalLast24Months"] as decimal?,
+                                        totalLast60Months = reader["totalLast60Months"] as decimal?,
+                                        approachesLast6Months = reader["approachesLast6Months"] as decimal?,
+                                        daysSincePIC = reader["daysSincePIC"] as decimal?,
+                                        daysSinceIPC = reader["daysSinceIPC"] as decimal?,
+                                        daysSinceCurrencyUpgrade = reader["daysSinceCurrencyUpgrade"] as decimal?
+                                    };
+
+                                result.Add(record);
+                            }
+                            return Ok(result); // This returns JSON
+                        }
+                    }
                 }
             }
-            return new JsonResult(table);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the pilot report");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
