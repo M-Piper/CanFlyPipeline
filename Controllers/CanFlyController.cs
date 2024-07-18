@@ -354,7 +354,7 @@ namespace CanFlyPipeline.Controllers
                 -- TOTAL INSTRUMENT APPROACHES IN LAST 6 MONTHS FOR PILOT 2
                 INSERT INTO TempReport (displayName, approachesLast6Months)
                 SELECT 'Total Instrument Approaches (Last 6 Months)' AS displayName,
-                    SUM(COALESCE(instrumentApproachTime, 0)) AS approachesLast6Months
+                    SUM(COALESCE(instrumentApproachesCount, 0)) AS approachesLast6Months
                 FROM logEntry
                 WHERE pilotID = 2 AND entryDate BETWEEN NOW() - INTERVAL 6 MONTH AND NOW()
                 GROUP BY pilotID;
@@ -372,7 +372,7 @@ namespace CanFlyPipeline.Controllers
                 SELECT 'Days Since Last Instrument Proficiency Check' AS displayName,
                     DATEDIFF(NOW(), MAX(entryDate)) AS daysSinceIPC
                 FROM logEntry
-                WHERE pilotID = 2 AND instrumentApproachTime > 0
+                WHERE pilotID = 2 AND instrumentApproachesCount > 0
                 GROUP BY pilotID;
 
                 -- DAYS SINCE LAST CURRENCY UPGRADE FOR PILOT 2
@@ -393,6 +393,7 @@ namespace CanFlyPipeline.Controllers
                     await connection.OpenAsync();
                     using (var command = new MySqlCommand(query, connection))
                     {
+                        //command.CommandTimeout = 300; 
                         using (var reader = await command.ExecuteReaderAsync())
                         {
                             var result = new List<object>();
@@ -448,12 +449,14 @@ namespace CanFlyPipeline.Controllers
         //GET REQUIREMENT SUMMARY (HARD CODED FOR PPL (RatingTypeID = 2) FOR DEMO STUDENT (PilotID = 2)
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetRequirementSummary")]
-        public JsonResult GetRequirementSummary()
+        public async Task<IActionResult> GetRequirementSummary()
 
         {
             string query = @"
-                -- Temporary table to store the requirements
+                -- Drop temporary tables
+                
                 DROP TEMPORARY TABLE IF EXISTS TempRequirements;
+                DROP TEMPORARY TABLE IF EXISTS TempPilotLogAggregated;
 
                 CREATE TEMPORARY TABLE TempRequirements (
                   requirementsID INT,
@@ -534,7 +537,7 @@ namespace CanFlyPipeline.Controllers
                       COALESCE(instrumentSimulatorDualTime,0)) AS totalSimulator, -- both instrument sim and VFR
                   MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN landings-1 ELSE 0 END) AS soloCrossCountryTripStops,
                   MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN crossCountryDistance ELSE 0 END) AS soloCrossCountryDistance,
-                  MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN date ELSE NULL END) AS crossCountryDate
+                  MAX(CASE WHEN routeTo IS NOT NULL AND routeVia IS NOT NULL AND routeFrom IS NOT NULL AND crossCountryDistance >= 150 AND crossCountryDayPICTime IS NOT NULL AND landings >= 3 THEN entryDate ELSE NULL END) AS crossCountryDate
                 FROM logEntry
                 WHERE pilotID = 2;
 
@@ -568,28 +571,45 @@ namespace CanFlyPipeline.Controllers
                   r.hierarchy
                 FROM TempRequirements r
                 LEFT JOIN TempPilotLogAggregated l ON 1 = 1; -- Cross join to compare each requirement with the aggregated log
+                
+                ";
 
-                -- Drop temporary tables
-                DROP TEMPORARY TABLE IF EXISTS TempRequirements;
-                DROP TEMPORARY TABLE IF EXISTS TempPilotLogAggregated;";
-
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var result = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    requirementsID = reader["requirementsID"] as decimal?,
+                                    displayName = reader["displayName"] as string,
+                                    HouseStatus = reader["HoursStatus"] as string,
+                                    CrossCountryStatus = reader["CrossCountryStatus"] as string,
+                                    InstrumentSim = reader["InstrumentSim"] as string,
+                                    TotalSim = reader["TotalSim"] as string,
+                                    parentRequirementsID = reader["parentRequirementsID"] as decimal?,
+                                    hierarchy = reader["hierarchy"] as string
+                                };
+
+                                result.Add(record);
+                            }
+                            return Ok(result); // This returns JSON
+                        }
+                    }
                 }
             }
-            return new JsonResult(table);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the requirements report");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
@@ -597,53 +617,133 @@ namespace CanFlyPipeline.Controllers
         //RETRIEVING DATA FROM PILOT TABLE
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetProfile")]
-        public JsonResult GetProfile()
+        public async Task<IActionResult> GetProfile()
 
         {
             string query = "select * from pilot WHERE pilotID=2";
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var result = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    pilotID = reader["pilotID"] as decimal?,
+                                    firstName = reader["firstName"] as string,
+                                    lastName = reader["lastName"] as string,
+                                    email = reader["email"] as string,
+                                    streetAddress = reader["streetAddress"] as string,
+                                    city = reader["city"] as string,
+                                    province = reader["province"] as string,
+                                    canadianForcesActive = reader["canadianForcesActive"] as decimal?,
+                                    canadianForcesRetired = reader["canadianForcesRetired"] as decimal?,
+                                    dob = reader["dob"] as DateTime?,
+                                    phone = reader["phone"] as decimal?,
+                                    primaryInstructor = reader["primaryInstructor"] as string
+                                };
+
+                                result.Add(record);
+                            }
+                            return Ok(result); // This returns JSON
+                        }
+                    }
                 }
             }
-            return new JsonResult(table);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the pilot profile");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         //RETRIEVING DATA FROM LOGENTRY TABLE
         [HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("GetLogs")]
-        public JsonResult GetLogs()
+        public async Task<IActionResult> GetLogs()
 
         {
             string query = "select * from logEntry";
-            DataTable table = new DataTable();
-            string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            try
             {
-                myCon.Open();
-
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-
+                using (var connection = new MySqlConnection(_configuration.GetConnectionString("CanFlyDBConn")))
                 {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
+                    await connection.OpenAsync();
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var result = new List<object>();
+                            while (await reader.ReadAsync())
+                            {
+                                var record = new
+                                {
+                                    logEntryID = reader["logEntryID"] as int,
+                                    date = reader["date"] as DateTime?,
+                                    registration = reader["registration"] as string,
+                                    pilotInCommand = reader["pilotInCommand"] as string,
+                                    studentOrCoPilot = reader["studentOrCoPilot"] as string,
+                                    activityExercises = reader["activityExercises"] as string,
+                                    singleEngineDayDualTime = reader["singleEngineDayDualTime"] as float?,
+                                    singleEngineDayPICTime = reader["singleEngineDayPICTime"] as float?,
+                                    singleEngineNightDualTime = reader["singleEngineNightDualTime"] as float?,
+                                    singleEngineNightPICTime = reader["singleEngineNightPICTime"] as float?,
+                                    multiEngineDayDualTime = reader["multiEngineDayDualTime"] as float?,
+                                    multiEngineDayPICTime = reader["multiEngineDayPICTime"] as float?,
+                                    multiEngineDaySICTime = reader["multiEngineDaySICTime"] as float?,
+                                    multiEngineNightDualTime = reader["multiEngineNightDualTime"] as float?,
+                                    multiEngineNightPICTime = reader["multiEngineNightPICTime"] as float?,
+                                    multiEngineNightSICTime = reader["multiEngineNightSICTime"] as float?,
+                                    instrumentActualTime = reader["instrumentActualTime"] as float?,
+                                    instrumentHoodTime = reader["instrumentHoodTime"] as float?,
+                                    instrumentSimulatorDualTime = reader["instrumentSimulatorDualTime"] as float?,
+                                    instrumentApproachesCount = reader["instrumentApproachesCount"] as int?,
+                                    crossCountryDayDualTime = reader["crossCountryDayDualTime"] as float?,
+                                    crossCountryDayPICTime = reader["crossCountryDayPICTime"] as float?,
+                                    crossCountryNightDualTime = reader["crossCountryNightDualTime"] as float?,
+                                    crossCountryNightPICTime = reader["crossCountryNightPICTime"] as float?,
+                                    crossCountryDistance = reader["crossCountryDistance"] as float?,
+                                    routeFrom = reader["routeFrom"] as string,
+                                    routeVia = reader["routeVia"] as string,
+                                    routeTo = reader["routeTo"] as string,
+                                    dualInstructionGivenTime = reader["dualInstructionGivenTime"] as string,
+                                    floatTime = reader["floatTime"] as string,
+                                    VFRSimulatorDualTime = reader["VFRSimulatorDualTime"] as string,
+                                    planeTypeID = reader["planeTypeID"] as int?,
+                                    pilotID = reader["pilotID"] as int?,
+                                    CAF = reader["CAF"] as bool?,
+                                    takeOffs = reader["takeOffs"] as int?,
+                                    landings = reader["landings"] as int?,
+                                    circuits = reader["circuits"] as int?,
+                                    omitFromReports = reader["omitFromReports"] as bool?,
+                                    untetheredBalloon = reader["untetheredBalloon"] as int?,
+                                    altitudeBalloon = reader["altitudeBalloon"] as int?,
+                                    outsideCanada = reader["outsideCanada"] as bool?,
+                                    launchLocationGlider = reader["launchLocationGlider"] as string,
+                                    distanceGlider = reader["distanceGlider"] as int?,
+                                    launchTypeGlider = reader["launchTypeGlider"] as string,
+                                    aircraftCategory = reader["aircraftCategory"] as string,
+                                    aircraftTypeID = reader["aircraftTypeID"] as int?
+                                };
+
+                                result.Add(record);
+                            }
+                            return Ok(result); // This returns JSON
+                        }
+                    }
                 }
             }
-            return new JsonResult(table);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the pilot logbook");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
