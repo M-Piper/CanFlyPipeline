@@ -30,9 +30,9 @@
         public string? routeFrom { get; set; }
         public string? routeVia { get; set; }
         public string? routeTo { get; set; }
-        public string? dualInstructionGivenTime { get; set; }
-        public string? floatTime { get; set; }
-        public string? VFRSimulatorDualTime { get; set; }
+        public float? dualInstructionGivenTime { get; set; }
+        public float? floatTime { get; set; }
+        public float? VFRSimulatorDualTime { get; set; }
         public int? pilotID { get; set; }
         public bool? CAF { get; set; }
         public int? takeOffs { get; set; }
