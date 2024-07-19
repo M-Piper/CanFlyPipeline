@@ -747,12 +747,10 @@ namespace CanFlyPipeline.Controllers
 
 
         // DELETING ROWS FROM LOGENTRY TABLE
-        [HttpDelete]
-        [Microsoft.AspNetCore.Mvc.Route("DeleteLogs")]
-        public JsonResult DeleteNotes(string id)
+        [HttpDelete("{id}")]
+        public JsonResult DeleteNotes(int id)
         {
             string query = "DELETE FROM logEntry WHERE logEntryID=@logEntryID";
-            DataTable table = new DataTable();
             string sqlDatasource = _configuration.GetConnectionString("CanFlyDBConn");
 
             using (MySqlConnection myCon = new MySqlConnection(sqlDatasource))
@@ -761,16 +759,19 @@ namespace CanFlyPipeline.Controllers
                 using (MySqlCommand myCommand = new MySqlCommand(query, myCon))
                 {
                     myCommand.Parameters.AddWithValue("@logEntryID", id);
-                    using (MySqlDataReader myReader = myCommand.ExecuteReader())
+                    int rowsAffected = myCommand.ExecuteNonQuery(); // Use ExecuteNonQuery for delete
+                    if (rowsAffected > 0)
                     {
-                        table.Load(myReader);
-                        myReader.Close();
+                        return new JsonResult("Deleted Successfully");
+                    }
+                    else
+                    {
+                        return new JsonResult("No record found");
                     }
                 }
-                myCon.Close();
             }
-            return new JsonResult("Deleted Successfully");
         }
+
 
         // ADDING A NEW LOG ENTRY
         [HttpPost]
