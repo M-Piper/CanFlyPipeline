@@ -962,23 +962,27 @@ namespace CanFlyPipeline.Controllers
         public async Task<IActionResult> GetTotalHours()
         {
             string query = @"
-    SELECT 
-        ROUND(
-        SUM(COALESCE(singleEngineDayDualTime, 0) +
-            COALESCE(singleEngineDayPICTime, 0) +
-            COALESCE(singleEngineNightDualTime, 0) +
-            COALESCE(singleEngineNightPICTime, 0) +
-            COALESCE(multiEngineDayDualTime, 0) +
-            COALESCE(multiEngineDayPICTime, 0) +
-            COALESCE(multiEngineDaySICTime, 0) +
-            COALESCE(multiEngineNightDualTime, 0) +
-            COALESCE(multiEngineNightPICTime, 0) +
-            COALESCE(multiEngineNightSICTime, 0) +
-            COALESCE(instrumentActualTime, 0) +
-            COALESCE(instrumentHoodTime, 0))) AS TotalHours
-    FROM logEntry
-    WHERE pilotID = 2
-    GROUP BY pilotID;";
+               SELECT 
+                ROUND(
+                    SUM(
+                        COALESCE(singleEngineDayDualTime, 0) +
+                        COALESCE(singleEngineDayPICTime, 0) +
+                        COALESCE(singleEngineNightDualTime, 0) +
+                        COALESCE(singleEngineNightPICTime, 0) +
+                        COALESCE(multiEngineDayDualTime, 0) +
+                        COALESCE(multiEngineDayPICTime, 0) +
+                        COALESCE(multiEngineDaySICTime, 0) +
+                        COALESCE(multiEngineNightDualTime, 0) +
+                        COALESCE(multiEngineNightPICTime, 0) +
+                        COALESCE(multiEngineNightSICTime, 0) +
+                        COALESCE(instrumentActualTime, 0) +
+                        COALESCE(instrumentHoodTime, 0)
+                    ), 
+                    1
+                    ) AS TotalHours
+                    FROM logEntry
+                WHERE pilotID = 2
+             GROUP BY pilotID;";
 
             try
             {
@@ -993,7 +997,7 @@ namespace CanFlyPipeline.Controllers
                             {
                                 var totalHours = new
                                 {
-                                    TotalHours = reader["totalHours"] as decimal?
+                                    TotalHours = reader["totalHours"] as float?
                                 };
                                 return Ok(totalHours); // This returns JSON
                             }
