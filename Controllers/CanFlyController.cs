@@ -963,27 +963,27 @@ namespace CanFlyPipeline.Controllers
         public async Task<IActionResult> GetTotalHours()
         {
             string query = @"
-               SELECT 
-                ROUND(
-                    SUM(
-                        COALESCE(singleEngineDayDualTime, 0) +
-                        COALESCE(singleEngineDayPICTime, 0) +
-                        COALESCE(singleEngineNightDualTime, 0) +
-                        COALESCE(singleEngineNightPICTime, 0) +
-                        COALESCE(multiEngineDayDualTime, 0) +
-                        COALESCE(multiEngineDayPICTime, 0) +
-                        COALESCE(multiEngineDaySICTime, 0) +
-                        COALESCE(multiEngineNightDualTime, 0) +
-                        COALESCE(multiEngineNightPICTime, 0) +
-                        COALESCE(multiEngineNightSICTime, 0) +
-                        COALESCE(instrumentActualTime, 0) +
-                        COALESCE(instrumentHoodTime, 0)
-                    ), 
-                    1
-                    ) AS TotalHours
-                    FROM logEntry
-                WHERE pilotID = 2
-             GROUP BY pilotID;";
+       SELECT 
+        ROUND(
+            SUM(
+                COALESCE(singleEngineDayDualTime, 0) +
+                COALESCE(singleEngineDayPICTime, 0) +
+                COALESCE(singleEngineNightDualTime, 0) +
+                COALESCE(singleEngineNightPICTime, 0) +
+                COALESCE(multiEngineDayDualTime, 0) +
+                COALESCE(multiEngineDayPICTime, 0) +
+                COALESCE(multiEngineDaySICTime, 0) +
+                COALESCE(multiEngineNightDualTime, 0) +
+                COALESCE(multiEngineNightPICTime, 0) +
+                COALESCE(multiEngineNightSICTime, 0) +
+                COALESCE(instrumentActualTime, 0) +
+                COALESCE(instrumentHoodTime, 0)
+            ), 
+            1
+            ) AS TotalHours
+        FROM logEntry
+        WHERE pilotID = 2
+     GROUP BY pilotID;";
 
             try
             {
@@ -996,11 +996,9 @@ namespace CanFlyPipeline.Controllers
                         {
                             if (await reader.ReadAsync())
                             {
-                                var totalHours = new
-                                {
-                                    TotalHours = reader["totalHours"] as float?
-                                };
-                                return Ok(totalHours); // This returns JSON
+                                // Correctly read the TotalHours from the reader
+                                var totalHours = reader["TotalHours"] as float? ?? 0f;
+                                return Ok(new { TotalHours = totalHours }); // This returns JSON
                             }
                             return NotFound(); // No data found for the given pilotID
                         }
@@ -1013,7 +1011,6 @@ namespace CanFlyPipeline.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         //RETRIEVING PILOT NAME FOR LANDING PAGE
         [HttpGet]
