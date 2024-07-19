@@ -684,7 +684,7 @@ namespace CanFlyPipeline.Controllers
                             {
                                 var record = new
                                 {
-                                    logEntryID = reader["logEntryID"] as decimal?,
+                                    logEntryID = reader["logEntryID"] as int?,
                                     entryDate = reader["entryDate"] as DateTime?,
                                     registration = reader["registration"] as string,
                                     pilotInCommand = reader["pilotInCommand"] as string,
