@@ -857,7 +857,7 @@ namespace CanFlyPipeline.Controllers
                         await command.ExecuteNonQueryAsync();
                     }
                 }
-                return Ok("Added Successfully");
+                return Ok(new { message = "Added Successfully" });
             }
             catch (Exception ex)
             {
