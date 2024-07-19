@@ -997,8 +997,8 @@ namespace CanFlyPipeline.Controllers
                             if (await reader.ReadAsync())
                             {
                                 // Correctly read the TotalHours from the reader
-                                var totalHours = reader["TotalHours"] as float? ?? 0f;
-                                return Ok(new { TotalHours = totalHours }); // This returns JSON
+                                var TotalHours = reader["TotalHours"] as float? ?? 0f;
+                                return Ok(new { TotalHours = TotalHours }); // This returns JSON
                             }
                             return NotFound(); // No data found for the given pilotID
                         }
